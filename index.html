@@ -53,8 +53,8 @@ a{color:inherit;text-decoration:none}
 .link{background:linear-gradient(var(--neon),var(--neon)) 0 100%/0 40% no-repeat;transition:background-size 200ms var(--ease)}
 .link:hover{background-size:100% 40%}
 .it,.slate .big,.blurb .lead{font-family:var(--pixel);font-style:italic;font-weight:400;font-synthesis:none;letter-spacing:-.005em;-webkit-text-stroke:.03em currentColor;paint-order:stroke fill}
-.it .c{display:inline-block;transform-origin:50% 85%;transform:translateY(var(--y,0px)) rotate(var(--r,0deg)) scale(var(--sx,1),var(--sy,1));transition:transform 180ms var(--ease)}
-.it .w{display:inline-block;white-space:nowrap}
+.react .c,.it .c{display:inline-block;transform-origin:50% 85%;transform:translateY(var(--y,0px)) rotate(var(--r,0deg)) scale(var(--sx,1),var(--sy,1));transition:transform 180ms var(--ease)}
+.react .w,.it .w{display:inline-block;white-space:nowrap}
 
 /* ---------- page ---------- */
 .app{height:100%;display:grid;grid-template-rows:auto minmax(0,1fr);gap:clamp(16px,3vh,32px);padding:var(--pad)}
@@ -234,7 +234,7 @@ dialog[open] .panel{animation:rise 220ms var(--ease)}
     <div class="side caps">
       <nav class="nav" aria-label="Site">
         <button class="link" type="button" data-open="infoPanel">Info</button>
-        <span class="mail"><a class="link" href="mailto:pierre.scj@gmail.com">pierre.scj@gmail.com</a><button class="muted copy" type="button">Copy</button></span>
+        <span class="mail"><a class="link" href="mailto:pierre.scj@gmail.com">pierre.scj@gmail.com</a></span>
         <a class="link" href="https://www.instagram.com/pierrescj/" target="_blank" rel="noopener">Instagram<svg class="arrow" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 9L9 3M4 3h5v5" fill="none" stroke="currentColor" stroke-width="1"/></svg></a>
       </nav>
       <span class="muted">London <span class="clock" id="clock"></span></span>
@@ -281,18 +281,18 @@ dialog[open] .panel{animation:rise 220ms var(--ease)}
       <span class="t it">Info</span>
     </div>
     <div class="info">
-      <img src="assets/headshot.jpg" alt="Halftone portrait of Pierre-Sebastien Cabrejo-Jones" width="720" height="949">
+      <img src="assets/headshot.jpg?v=2" alt="Halftone portrait of Pierre-Sebastien Cabrejo-Jones" width="720" height="949">
       <div>
         <div class="blurb">
-          <p class="lead">Hi, I'm Pierre-Sebastien.</p>
-          <p>I direct, shoot and edit, after about a decade on film and TV sets in Canada. These days I work out of London.</p>
-          <p>I like a set that feels like a team, a brief with a little room to play, and the moment a plan meets real light and gets better. I'm still learning on every job, and glad of it. If there's something new to try, I'll usually say yes before you finish the sentence.</p>
-          <p>Easy to work with. Quick to laugh. Serious about the frame.</p>
+          <p class="lead react">Hi, I'm Pierre-Sebastien.</p>
+          <p class="react">I direct, shoot and edit, after about a decade on film and TV sets in Canada. These days I work out of London.</p>
+          <p class="react">I like a set that feels like a team, a brief with a little room to play, and the moment a plan meets real light and gets better. I'm still learning on every job, and glad of it. If there's something new to try, I'll usually say yes before you finish the sentence.</p>
+          <p class="react">Easy to work with. Quick to laugh. Serious about the frame.</p>
         </div>
         <dl>
           <dt class="caps">Based</dt><dd>London</dd>
           <dt class="caps">Languages</dt><dd>English, French, Spanish</dd>
-          <dt class="caps">Contact</dt><dd><a class="link" href="mailto:pierre.scj@gmail.com">pierre.scj@gmail.com</a> <button class="caps muted copy" type="button">Copy</button></dd>
+          <dt class="caps">Contact</dt><dd><a class="link" href="mailto:pierre.scj@gmail.com">pierre.scj@gmail.com</a></dd>
           <dt class="caps">Instagram</dt><dd><a class="link" href="https://www.instagram.com/pierrescj/" target="_blank" rel="noopener">@pierrescj<svg class="arrow" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 9L9 3M4 3h5v5" fill="none" stroke="currentColor" stroke-width="1"/></svg></a></dd>
         </dl>
       </div>
@@ -322,27 +322,31 @@ const slate = (w, small) => `<div class="slate"><div class="big">${w.slate}</div
 const media = (w, small) => w.poster ? `<img src="${w.poster}" alt="">` : slate(w, small);
 let active = "demo";
 
-/* name: letters split so they can react to the cursor */
-const nameEl = $("#name");
-(function(){
-  const text = nameEl.textContent.trim();
-  nameEl.setAttribute("aria-label", text);
-  nameEl.innerHTML = text.split(" ").map(word => `<span class="w" aria-hidden="true">${[...word].map(ch=>`<span class="c">${ch}</span>`).join("")}</span>`).join(" ");
-  const letters = [...nameEl.querySelectorAll(".c")];
-  nameEl.addEventListener("pointermove", e=>{
+/* letters that react to the cursor: near it they stretch up and lean away, then settle back */
+function makeReactive(el){
+  const text = el.textContent.trim().replace(/\s+/g," ");
+  el.setAttribute("aria-label", text);
+  el.innerHTML = text.split(" ").map(word => `<span class="w" aria-hidden="true">${[...word].map(ch=>`<span class="c">${ch}</span>`).join("")}</span>`).join(" ");
+  const letters = [...el.querySelectorAll(".c")];
+  el.addEventListener("pointermove", e=>{
     if(reduce || e.pointerType!=="mouse") return;
+    const radius = parseFloat(getComputedStyle(el).fontSize) * 1.6 + 20;
     letters.forEach(c=>{
       const b = c.getBoundingClientRect();
       const dx = (b.left + b.width/2) - e.clientX, dy = (b.top + b.height/2) - e.clientY;
-      const d = Math.hypot(dx, dy) || 1, k = Math.max(0, 1 - d/90);
+      const d = Math.hypot(dx, dy) || 1, k = Math.max(0, 1 - d/radius);
+      if(!k && !c.style.length) return;
       c.style.setProperty("--sy", (1 + .5*k).toFixed(3));
       c.style.setProperty("--sx", (1 - .12*k).toFixed(3));
       c.style.setProperty("--r", `${((dx/d)*10*k).toFixed(1)}deg`);
       c.style.setProperty("--y", `${(-6*k).toFixed(1)}px`);
     });
   });
-  nameEl.addEventListener("pointerleave", ()=>letters.forEach(c=>["--r","--y","--sx","--sy"].forEach(v=>c.style.removeProperty(v))));
-})();
+  el.addEventListener("pointerleave", ()=>letters.forEach(c=>c.removeAttribute("style")));
+}
+const nameEl = $("#name");
+makeReactive(nameEl);
+document.querySelectorAll(".react").forEach(makeReactive);
 
 /* display type always fits its space: if a line is wider than its box, it scales down to fit */
 function fitText(el){
@@ -463,13 +467,6 @@ function openViewer(w){
   $("#viewer").showModal();
   fitAll($("#viewer"));
 }
-
-/* copy email */
-document.querySelectorAll(".copy").forEach(b=>b.addEventListener("click", async ()=>{
-  try{ await navigator.clipboard.writeText("pierre.scj@gmail.com"); b.textContent = "Copied"; }
-  catch{ b.textContent = "Select it"; }
-  setTimeout(()=>b.textContent="Copy", 1400);
-}));
 
 /* cursor: one dot, lime over images */
 const dot = $("#dot");
