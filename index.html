@@ -8,7 +8,8 @@
 <link rel="canonical" href="https://www.pierresebastien.com/">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<meta name="theme-color" content="#FFFFFF">
+<meta name="theme-color" content="#001EFF" media="(max-width: 719px)">
+<meta name="theme-color" content="#FFFFFF" media="(min-width: 720px)">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://www.pierresebastien.com/">
 <meta property="og:title" content="Pierre-Sebastien Cabrejo-Jones">
@@ -250,15 +251,11 @@ function scrawl(el, text){
   ).join(" ");
   shake(el, 1);
 }
-function shake(el, amount){
-  if(reduce) return;
+function shake(el){
+  /* letters rest upright and even; only the name reacts, and only while the cursor is on it */
   el.querySelectorAll(".c").forEach(c=>{
-    const r = rnd(4.5*amount), y = rnd(2*amount), sx = .74 + Math.random()*.3*amount, sy = .94 + rnd(.1*amount);
-    Object.assign(c.dataset, {r, y, sx, sy});
-    c.style.setProperty("--r", `${r.toFixed(1)}deg`);
-    c.style.setProperty("--y", `${y.toFixed(1)}px`);
-    c.style.setProperty("--sx", sx.toFixed(3));
-    c.style.setProperty("--sy", sy.toFixed(3));
+    Object.assign(c.dataset, {r:0, y:0, sx:1, sy:1});
+    ["--r","--y","--sx","--sy"].forEach(v=>c.style.removeProperty(v));
   });
 }
 scrawl($("#name"), "Pierre-Sebastien Cabrejo-Jones");
@@ -289,7 +286,7 @@ WORKS.forEach(w=>{
   const li = document.createElement("li");
   li.innerHTML = `<button class="row" type="button" data-id="${w.id}">
       <span class="num">${w.num}</span>
-      <span class="thumb" style="--tilt:${rnd(1.8).toFixed(2)}deg">${media(w)}</span>
+      <span class="thumb">${media(w)}</span>
       <span class="title scrawl"></span>
       <span class="meta"><span class="px">${w.role}</span><span class="tc muted">${w.tc}</span></span>
     </button>`;
@@ -307,7 +304,6 @@ list.addEventListener("pointerleave", unhover);
 function hover(row){
   list.classList.add("hovering");
   list.querySelectorAll(".row").forEach(r=>r.classList.toggle("on", r===row));
-  shake(row.querySelector(".title"), 1.6);   /* the letters reshuffle */
 }
 function unhover(){
   list.classList.remove("hovering");
