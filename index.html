@@ -19,7 +19,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@1,6..96,400..800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Micro+5&display=swap" rel="stylesheet">
 <style>
 :root{
   /* Layout: one screen on desktop. A top bar with the name in a bold high-contrast italic and the
@@ -29,10 +29,11 @@
   --paper:#E7E6E3;
   --paper-2:#DCDBD7;
   --blue:#1A2BE0;
-  --neon:#C8FF2E;
+  --neon:#F28C4E;
+  --ink:#10164A;
   --muted:#62657E;
   --line:rgba(26,43,224,.22);
-  --italic:"Bodoni Moda", "Didot", "Bodoni 72", "Times New Roman", serif;
+  --pixel:"Micro 5", ui-monospace, Menlo, monospace;
   --sans:"Helvetica Neue", Helvetica, Arial, sans-serif;
   --r:16px;
   --ease:cubic-bezier(.2,.9,.25,1);
@@ -51,14 +52,14 @@ a{color:inherit;text-decoration:none}
 .muted{color:var(--muted)}
 .link{background:linear-gradient(var(--neon),var(--neon)) 0 100%/0 40% no-repeat;transition:background-size 200ms var(--ease)}
 .link:hover{background-size:100% 40%}
-.it{font-family:var(--italic);font-style:italic;font-weight:600;font-optical-sizing:auto;letter-spacing:-.02em}
+.it{font-family:var(--pixel);font-weight:400;letter-spacing:.01em;-webkit-font-smoothing:none;font-smooth:never}
 .it .c{display:inline-block;transform-origin:50% 85%;transform:translateY(var(--y,0px)) rotate(var(--r,0deg)) scale(var(--sx,1),var(--sy,1));transition:transform 180ms var(--ease)}
 .it .w{display:inline-block;white-space:nowrap}
 
 /* ---------- page ---------- */
 .app{height:100%;display:grid;grid-template-rows:auto minmax(0,1fr);gap:clamp(16px,3vh,32px);padding:var(--pad)}
 .top{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:24px}
-.name{margin:0;font-size:clamp(40px,min(5vw,9vh),92px);line-height:.95;cursor:default;width:fit-content}
+.name{margin:0;font-size:clamp(48px,min(6.4vw,11.5vh),124px);line-height:.8;cursor:default;width:fit-content}
 .roles{margin-top:12px}
 .side{display:flex;flex-direction:column;align-items:flex-end;gap:10px;text-align:right}
 .nav{display:flex;gap:22px;align-items:baseline;flex-wrap:wrap;justify-content:flex-end}
@@ -78,14 +79,15 @@ a{color:inherit;text-decoration:none}
 .layer.on{opacity:1}
 .layer img{width:100%;height:100%;object-fit:cover;transform:translate(var(--px),var(--py)) scale(1.05);transition:transform 160ms linear}
 .slate{width:100%;height:100%;background:var(--blue);color:var(--paper);display:grid;place-content:center;justify-items:center;gap:12px;text-align:center;padding:24px}
-.slate .big{font-family:var(--italic);font-style:italic;font-weight:600;letter-spacing:-.02em;font-size:clamp(34px,8cqw,110px);line-height:.95}
+.slate .big{font-family:var(--pixel);font-size:clamp(44px,11cqw,150px);line-height:.85}
 .slate .caps{color:var(--neon)}
 .cap{position:absolute;left:14px;right:14px;bottom:14px;z-index:2;display:flex;justify-content:space-between;align-items:flex-end;gap:10px;pointer-events:none}
-.tag{background:var(--neon);color:var(--blue);padding:8px 12px;display:flex;gap:14px;align-items:baseline}
+.tag{background:var(--neon);color:var(--ink);padding:8px 12px;display:flex;gap:14px;align-items:baseline}
 .tag .tc{font-variant-numeric:tabular-nums}
 .play{width:56px;height:56px;border-radius:50%;background:var(--neon);display:grid;place-items:center;flex:none;transition:transform 260ms var(--spring)}
 .stage:hover .play{transform:scale(1.12)}
 .play svg{width:16px;height:16px;margin-left:3px}
+.arrow{width:.8em;height:.8em;vertical-align:-.05em;margin-left:.25em}
 
 .index{display:flex;flex-direction:column;min-height:0}
 .list{list-style:none;margin:0;padding:0;overflow:auto;min-height:0;border-top:1px solid var(--blue);scrollbar-width:thin}
@@ -97,18 +99,18 @@ a{color:inherit;text-decoration:none}
 .row:hover{background:var(--paper-2)}
 .row.on{background:var(--neon)}
 .num{font-size:11px;font-variant-numeric:tabular-nums;color:var(--muted)}
-.row.on .num{color:var(--blue)}
+.row.on .num{color:var(--ink)}
 .thumb{position:relative;display:block;aspect-ratio:16/9;border-radius:8px;overflow:hidden;background:var(--blue)}
 .thumb img{width:100%;height:100%;object-fit:cover;transition:transform 240ms var(--ease)}
 .row:hover .thumb img{transform:scale(1.08)}
 .thumb .slate{padding:4px}
-.thumb .slate .big{font-size:12px}
+.thumb .slate .big{font-size:20px}
 .txt{display:flex;flex-direction:column;gap:6px;min-width:0}
-.t-title{font-size:clamp(20px,1.7vw,26px);line-height:1;overflow-wrap:break-word}
+.t-title{font-size:clamp(28px,2.4vw,38px);line-height:.85;overflow-wrap:break-word}
 .t-role{color:var(--muted)}
-.row.on .t-role{color:var(--blue)}
+.row.on .t-role{color:var(--ink)}
 .rt{font-size:12px;font-variant-numeric:tabular-nums;color:var(--muted)}
-.row.on .rt{color:var(--blue)}
+.row.on .rt{color:var(--ink)}
 .hint{margin:10px 0 0;color:var(--muted)}
 
 /* ---------- the cursor: one dot ---------- */
@@ -131,16 +133,19 @@ dialog[open] .panel{animation:rise 220ms var(--ease)}
 .panel.settle{transition:transform 260ms var(--ease), opacity 260ms var(--ease)}
 .panel-top{display:flex;align-items:center;gap:16px;padding-bottom:14px;border-bottom:1px solid var(--blue)}
 .x{width:44px;height:44px;border-radius:50%;background:var(--blue);color:var(--paper);display:grid;place-items:center;flex:none;transition:background 140ms,color 140ms,transform 200ms var(--spring)}
-.x:hover{background:var(--neon);color:var(--blue);transform:rotate(90deg)}
+.x:hover{background:var(--neon);color:var(--ink);transform:rotate(90deg)}
 .x svg{width:16px;height:16px}
-.panel-top .t{font-size:clamp(26px,3vw,42px);line-height:1}
+.panel-top .t{font-size:clamp(36px,4vw,60px);line-height:.85}
 .grab{display:none}
 .screen-wrap{container-type:size;min-height:0;display:grid;place-items:center}
 .screen{position:relative;width:min(100cqw, calc(100cqh * 16 / 9));aspect-ratio:16/9;border-radius:var(--r);overflow:hidden;background:var(--blue)}
 .screen img,.screen video,.screen iframe{width:100%;height:100%;object-fit:cover;border:0;display:block}
 .panel-foot{display:flex;justify-content:space-between;align-items:baseline;gap:20px;flex-wrap:wrap;padding-top:14px;border-top:1px solid var(--blue)}
-.info{display:grid;grid-template-columns:auto minmax(0,1fr);gap:clamp(20px,4vw,64px);align-content:center;max-width:980px;width:100%;margin:0 auto}
-.info img{width:clamp(120px,14vw,190px);border-radius:14px;filter:grayscale(1)}
+.info{display:grid;grid-template-columns:auto minmax(0,1fr);gap:clamp(20px,4vw,64px);align-content:center;align-items:start;max-width:1040px;width:100%;margin:0 auto;overflow:auto;min-height:0}
+.info img{width:clamp(150px,18vw,260px);height:auto;border-radius:14px}
+.blurb{margin:0 0 22px;max-width:56ch}
+.blurb p{margin:0 0 12px;font-size:clamp(16px,1.35vw,19px);line-height:1.45;color:var(--blue)}
+.blurb .lead{font-family:var(--pixel);font-size:clamp(34px,3.4vw,52px);line-height:.9;margin-bottom:16px;padding-top:.1em}
 .info dl{margin:0;display:grid;grid-template-columns:minmax(110px,170px) minmax(0,1fr);border-top:1px solid var(--blue)}
 .info dt,.info dd{margin:0;padding:14px 0;border-bottom:1px solid var(--line)}
 .info dt{padding-top:17px;color:var(--muted)}
@@ -157,60 +162,65 @@ dialog[open] .panel{animation:rise 220ms var(--ease)}
 @media (min-width:720px) and (max-height:600px){ .app{height:auto;min-height:100%} .stage-wrap{height:70vh} .list{overflow:visible} }
 
 /* ---------- phones: a zooming carousel ---------- */
+.mini{display:none}
 @media (max-width:719px){
-  html{scroll-snap-type:y mandatory;scroll-padding-top:var(--bar-compact,56px)}
-  .app{height:auto;min-height:100%;display:block;padding:0 var(--pad);padding-top:var(--bar-full,190px)}
-  /* top bar: full at the top of the page, only the name once you scroll */
-  .top{
-    position:fixed;top:0;left:0;right:0;z-index:20;display:block;
-    padding:max(14px, env(safe-area-inset-top)) var(--pad) 12px;
-    background:rgba(231,230,227,.92);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
-    border-bottom:1px solid var(--line);transition:padding 260ms var(--ease);
-  }
-  .name{font-size:34px;line-height:.98;transition:font-size 260ms var(--ease)}
+  html{scroll-snap-type:y mandatory;scroll-padding-top:48px}
+  .app{height:auto;min-height:100%;display:block;padding:0 var(--pad)}
+  .top{display:block;padding:max(18px, env(safe-area-inset-top)) 0 18px;border-bottom:1px solid var(--line);scroll-snap-align:start;scroll-margin-top:0}
+  .name{font-size:60px;line-height:.76}
   .name .w{display:block}
-  .roles{margin-top:10px}
-  .side{align-items:flex-start;text-align:left;margin-top:14px;gap:8px}
+  .roles{margin-top:14px}
+  .side{align-items:flex-start;text-align:left;margin-top:16px;gap:8px}
   .nav{justify-content:flex-start;gap:8px 18px}
-  .roles,.side{max-height:120px;overflow:hidden;transition:max-height 260ms var(--ease), opacity 200ms, margin 260ms var(--ease)}
-  .top.compact{padding-bottom:10px}
-  .top.compact .name{font-size:22px}
-  .top.compact .name .w{display:inline-block}
-  .top.compact .roles,.top.compact .side{max-height:0;opacity:0;margin-top:0;pointer-events:none}
+  /* a solid one-line name bar slides down once the full header has scrolled away */
+  .mini{
+    display:flex;align-items:center;position:fixed;top:0;left:0;right:0;z-index:20;
+    padding:max(10px, env(safe-area-inset-top)) var(--pad) 10px;background:var(--paper);border-bottom:1px solid var(--line);
+    transform:translate3d(0,-110%,0);transition:transform 320ms var(--ease);will-change:transform;
+  }
+  .mini.show{transform:translate3d(0,0,0)}
+  .mini .it{font-size:26px;line-height:.8;white-space:nowrap}
 
   .work{display:block}
   .stage-wrap{display:none}
   .list{overflow:visible;border-top:0}
-  .list li{
-    border-bottom:0;height:78svh;display:flex;align-items:center;justify-content:center;
-    scroll-snap-align:center;scroll-snap-stop:always;
-  }
-  .list li:first-child{margin-top:-6svh}
-  .list li:last-child{margin-bottom:10svh}
+  .list li{border-bottom:0;height:74svh;display:flex;align-items:center;scroll-snap-align:center;view-timeline-name:--card;view-timeline-axis:block}
+  .list li:last-child{margin-bottom:14svh}
   .row{
     display:flex;flex-direction:column;align-items:stretch;gap:14px;padding:0;width:100%;
-    background:transparent !important;will-change:transform;transform-origin:50% 50%;
+    background:transparent !important;transform-origin:50% 50%;
+    transform:scale(.74);opacity:.38;transition:transform 560ms var(--ease),opacity 460ms var(--ease);
+    will-change:transform,opacity;backface-visibility:hidden;
   }
-  .row .thumb{width:100%;aspect-ratio:4/5;border-radius:22px}
-  .row .thumb img{transform:translateY(var(--iy,0px)) scale(var(--is,1.2));transition:none}
-  .row .thumb .slate .big{font-size:clamp(40px,13vw,60px)}
+  .list li.is-center .row{transform:scale(1);opacity:1}
+  .row .thumb{width:100%;aspect-ratio:4/5;border-radius:22px;transform:translateZ(0)}
+  .row .thumb img{transform:scale(1.14);transition:transform 900ms var(--ease);will-change:transform}
+  .list li.is-center .row .thumb img{transform:scale(1)}
+  /* where the browser can tie animation straight to scrolling, let it: no script in the loop */
+  @supports (animation-timeline: view()){
+    .row{transition:none;animation:card-zoom linear both;animation-timeline:--card;animation-range:cover 0% cover 100%}
+    .row .thumb img{transition:none;animation:img-zoom linear both;animation-timeline:--card;animation-range:cover 0% cover 100%}
+  }
+  .row .thumb .slate .big{font-size:clamp(64px,22vw,96px)}
   .row .thumb::after{
     content:"";position:absolute;right:14px;bottom:14px;width:52px;height:52px;border-radius:50%;
-    background:var(--neon) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M8 5v14l11-7z' fill='%231A2BE0'/%3E%3C/svg%3E") 56% 50%/20px no-repeat;
+    background:var(--neon) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M8 5v14l11-7z' fill='%2310164A'/%3E%3C/svg%3E") 56% 50%/20px no-repeat;
   }
   .row[data-id="director"] .thumb::after{display:none}
-  .row .num{position:absolute;opacity:0}
-  .row .txt{gap:6px}
-  .row .t-title{font-size:32px}
-  .row .rt{position:absolute;opacity:0}
+  .row .num,.row .rt{position:absolute;opacity:0;pointer-events:none}
+  .row .txt{gap:8px}
+  .row .t-title{font-size:44px}
   .row.on .t-role{color:var(--muted)}
   .hint{display:none}
 
   .grab{display:block;width:44px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 10px}
   .panel{grid-template-rows:auto auto minmax(0,1fr) auto}
   .info{grid-template-columns:1fr;align-content:start}
+  .info img{width:min(70%,260px)}
   .info dl{grid-template-columns:100px minmax(0,1fr)}
 }
+@keyframes card-zoom{0%{transform:scale(.7);opacity:.3}50%{transform:scale(1);opacity:1}100%{transform:scale(.7);opacity:.3}}
+@keyframes img-zoom{0%{transform:scale(1.26)}50%{transform:scale(1.02)}100%{transform:scale(1.26)}}
 @media (prefers-reduced-motion:reduce){ *,*::before,*::after{transition-duration:1ms !important;animation-duration:1ms !important} }
 </style>
 </head>
@@ -225,11 +235,12 @@ dialog[open] .panel{animation:rise 220ms var(--ease)}
       <nav class="nav" aria-label="Site">
         <button class="link" type="button" data-open="infoPanel">Info</button>
         <span class="mail"><a class="link" href="mailto:pierre.scj@gmail.com">pierre.scj@gmail.com</a><button class="muted copy" type="button">Copy</button></span>
-        <a class="link" href="https://www.instagram.com/pierrescj/" target="_blank" rel="noopener">Instagram &#8599;</a>
+        <a class="link" href="https://www.instagram.com/pierrescj/" target="_blank" rel="noopener">Instagram<svg class="arrow" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 9L9 3M4 3h5v5" fill="none" stroke="currentColor" stroke-width="1"/></svg></a>
       </nav>
       <span class="muted">London <span class="clock" id="clock"></span></span>
     </div>
   </header>
+  <div class="mini" id="mini" aria-hidden="true"><span class="it">Pierre-Sebastien Cabrejo-Jones</span></div>
 
   <main class="work">
     <div class="stage-wrap">
@@ -237,7 +248,7 @@ dialog[open] .panel{animation:rise 220ms var(--ease)}
         <div id="layers"></div>
         <div class="cap">
           <span class="tag caps" id="stageCap"></span>
-          <span class="play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 4v16l14-8z" fill="#1A2BE0"/></svg></span>
+          <span class="play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 4v16l14-8z" fill="#10164A"/></svg></span>
         </div>
       </button>
     </div>
@@ -270,14 +281,21 @@ dialog[open] .panel{animation:rise 220ms var(--ease)}
       <span class="t it">Info</span>
     </div>
     <div class="info">
-      <img src="assets/headshot.jpg" alt="Pierre-Sebastien Cabrejo-Jones" width="169" height="199">
-      <dl>
-        <dt class="caps">Work</dt><dd>Director, Videographer, Editor</dd>
-        <dt class="caps">Based</dt><dd>London</dd>
-        <dt class="caps">Languages</dt><dd>English, French, Spanish</dd>
-        <dt class="caps">Contact</dt><dd><a class="link" href="mailto:pierre.scj@gmail.com">pierre.scj@gmail.com</a> <button class="caps muted copy" type="button">Copy</button></dd>
-        <dt class="caps">Instagram</dt><dd><a class="link" href="https://www.instagram.com/pierrescj/" target="_blank" rel="noopener">@pierrescj &#8599;</a></dd>
-      </dl>
+      <img src="assets/headshot.jpg" alt="Halftone portrait of Pierre-Sebastien Cabrejo-Jones" width="720" height="949">
+      <div>
+        <div class="blurb">
+          <p class="lead">Hi, I'm Pierre-Sebastien.</p>
+          <p>I direct, shoot and edit, after about a decade on film and TV sets in Canada. These days I work out of London.</p>
+          <p>I like a set that feels like a team, a brief with a little room to play, and the moment a plan meets real light and gets better. I'm still learning on every job, and glad of it. If there's something new to try, I'll usually say yes before you finish the sentence.</p>
+          <p>Easy to work with. Quick to laugh. Serious about the frame.</p>
+        </div>
+        <dl>
+          <dt class="caps">Based</dt><dd>London</dd>
+          <dt class="caps">Languages</dt><dd>English, French, Spanish</dd>
+          <dt class="caps">Contact</dt><dd><a class="link" href="mailto:pierre.scj@gmail.com">pierre.scj@gmail.com</a> <button class="caps muted copy" type="button">Copy</button></dd>
+          <dt class="caps">Instagram</dt><dd><a class="link" href="https://www.instagram.com/pierrescj/" target="_blank" rel="noopener">@pierrescj<svg class="arrow" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 9L9 3M4 3h5v5" fill="none" stroke="currentColor" stroke-width="1"/></svg></a></dd>
+        </dl>
+      </div>
     </div>
     <div></div>
   </div>
@@ -326,6 +344,21 @@ const nameEl = $("#name");
   nameEl.addEventListener("pointerleave", ()=>letters.forEach(c=>["--r","--y","--sx","--sy"].forEach(v=>c.style.removeProperty(v))));
 })();
 
+/* display type always fits its space: if a line is wider than its box, it scales down to fit */
+function fitText(el){
+  el.style.fontSize = "";
+  const box = el.parentElement, cs = getComputedStyle(box);
+  const avail = box.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+  const need = el.scrollWidth, size = parseFloat(getComputedStyle(el).fontSize);
+  if(avail > 0 && need > avail) el.style.fontSize = `${Math.max(10, size * avail / need * .97).toFixed(1)}px`;
+}
+function fitAll(scope = document){
+  scope.querySelectorAll("#name, .mini .it, .slate .big, .blurb .lead, .t-title").forEach(fitText);
+}
+let fitTimer;
+addEventListener("resize", ()=>{ clearTimeout(fitTimer); fitTimer = setTimeout(()=>fitAll(), 120); });
+if(document.fonts) document.fonts.ready.then(()=>fitAll());
+
 /* London clock */
 const clock = $("#clock");
 const tick = ()=>{ clock.textContent = new Intl.DateTimeFormat("en-GB",{timeZone:"Europe/London",hour:"2-digit",minute:"2-digit"}).format(new Date()); };
@@ -365,6 +398,7 @@ function setActive(id){
   $("#stage").setAttribute("aria-label", `${w.soon ? "Details for" : "Play"} ${w.title}, ${w.role}`);
 }
 setActive("demo");
+fitAll();
 
 /* stage: open + gentle parallax */
 const stage = $("#stage");
@@ -378,7 +412,7 @@ stage.addEventListener("pointermove", e=>{
 stage.addEventListener("pointerleave", ()=>{ stage.style.setProperty("--px","0px"); stage.style.setProperty("--py","0px"); });
 
 /* panels: open, close with the X, Escape, or a swipe down */
-document.querySelectorAll("[data-open]").forEach(b=>b.addEventListener("click", ()=>document.getElementById(b.dataset.open).showModal()));
+document.querySelectorAll("[data-open]").forEach(b=>b.addEventListener("click", ()=>{ const d = document.getElementById(b.dataset.open); d.showModal(); fitAll(d); }));
 document.querySelectorAll("dialog").forEach(d=>{
   const panel = d.querySelector(".panel");
   d.querySelector("[data-close]").addEventListener("click", ()=>d.close());
@@ -424,9 +458,10 @@ function openViewer(w){
   $("#vTitle").textContent = w.title;
   $("#vSub").textContent = [w.role, w.sub, w.soon ? "" : w.tc].filter(Boolean).join(" / ");
   $("#vAction").innerHTML = w.youtube
-    ? `<a class="link" href="${w.youtube}" target="_blank" rel="noopener">Open on YouTube &#8599;</a>`
+    ? `<a class="link" href="${w.youtube}" target="_blank" rel="noopener">Open on YouTube<svg class="arrow" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 9L9 3M4 3h5v5" fill="none" stroke="currentColor" stroke-width="1"/></svg></a>`
     : (w.soon ? "In production" : "Full film coming soon");
   $("#viewer").showModal();
+  fitAll($("#viewer"));
 }
 
 /* copy email */
@@ -450,46 +485,15 @@ document.querySelectorAll("dialog").forEach(d=>{
     .observe(d, {attributes:true, attributeFilter:["open"]});
 });
 
-/* phones: the top bar shrinks to the name once you scroll; pieces zoom as they reach the middle */
+/* phones: the name bar slides in once the header has gone; the centred piece zooms in.
+   Both are driven by observers and CSS, so nothing runs on every scroll frame. */
 (function(){
-  const top = $("#top"), root = document.documentElement;
-  const rows = [...list.querySelectorAll(".row")];
-  const thumbs = rows.map(r=>r.querySelector(".thumb"));
-  let ticking = false;
-  function measure(){
-    if(!phone.matches){ root.style.removeProperty("--bar-full"); return; }
-    top.classList.remove("compact");
-    root.style.setProperty("--bar-full", `${top.offsetHeight + 8}px`);
-    top.classList.add("compact");
-    root.style.setProperty("--bar-compact", `${top.offsetHeight}px`);
-    top.classList.toggle("compact", scrollY > 8);
-  }
-  function frame(){
-    ticking = false;
-    if(!phone.matches){
-      rows.forEach(r=>{ r.style.removeProperty("transform"); r.style.removeProperty("opacity"); });
-      thumbs.forEach(t=>{ t.style.removeProperty("--iy"); t.style.removeProperty("--is"); });
-      return;
-    }
-    top.classList.toggle("compact", scrollY > 8);
-    if(reduce) return;
-    const vh = innerHeight, mid = vh * .55;
-    rows.forEach((r,i)=>{
-      const b = r.parentElement.getBoundingClientRect();
-      const p = Math.max(-1.4, Math.min(1.4, (b.top + b.height/2 - mid) / (vh * .7)));
-      const k = Math.max(0, 1 - Math.abs(p));          /* 1 when centred, 0 a screen away */
-      r.style.transform = `scale(${(.68 + .32*k).toFixed(4)}) translateY(${(p*-6).toFixed(1)}%)`;
-      r.style.opacity = (.35 + .65*k).toFixed(3);
-      thumbs[i].style.setProperty("--is", (1.38 - .22*k).toFixed(3));
-      thumbs[i].style.setProperty("--iy", `${(p*-18).toFixed(1)}px`);
-    });
-  }
-  const req = ()=>{ if(!ticking){ ticking = true; requestAnimationFrame(frame); } };
-  addEventListener("scroll", req, {passive:true});
-  addEventListener("resize", ()=>{ measure(); req(); });
-  phone.addEventListener("change", ()=>{ measure(); req(); });
-  if(document.fonts) document.fonts.ready.then(()=>{ measure(); req(); });
-  measure(); req();
+  const mini = $("#mini");
+  new IntersectionObserver(([e])=>mini.classList.toggle("show", !e.isIntersecting), {rootMargin:"-40px 0px 0px 0px"})
+    .observe($("#top"));
+  const centre = new IntersectionObserver(entries=>entries.forEach(e=>e.target.classList.toggle("is-center", e.isIntersecting)),
+    {rootMargin:"-45% 0px -45% 0px"});
+  list.querySelectorAll("li").forEach(li=>centre.observe(li));
 })();
 </script>
 </body>
