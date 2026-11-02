@@ -1,6 +1,7 @@
 // Full regression: desktop + phone, CSP errors, fonts, name morph, rule, panels, swipe, grid, privacy page
 const { chromium } = require('playwright');
 const BASE = process.argv[2] || 'http://localhost:8787';
+const OUT = process.env.OUT || '/tmp';
 (async () => {
   const b = await chromium.launch(); const problems = []; const log = m => console.log(m);
   const watch = (p, tag) => { p.on('pageerror', e => problems.push(`${tag} JS error: ${e.message}`));
@@ -14,11 +15,11 @@ const BASE = process.argv[2] || 'http://localhost:8787';
   await d.hover('.row[data-id="velvet"]'); await d.waitForTimeout(250);
   log('hover sets stage: ' + await d.$eval('.layer.on', e=>e.dataset.id));
   await d.click('button[data-open="infoPanel"]'); await d.waitForTimeout(500);
-  log('info open: ' + await d.$eval('#infoPanel', e=>e.open)); await d.screenshot({path:'/home/claude/chk-desk-info.png'});
+  log('info open: ' + await d.$eval('#infoPanel', e=>e.open)); await d.screenshot({path:OUT + '/chk-desk-info.png'});
   await d.keyboard.press('Escape'); await d.waitForTimeout(300);
   await d.click('.row[data-id="figma"]'); await d.waitForTimeout(400); log('viewer open: ' + await d.$eval('#viewer', e=>e.open));
   await d.click('#viewer .x'); await d.waitForTimeout(400); log('viewer closed: ' + !(await d.$eval('#viewer', e=>e.open)));
-  await d.screenshot({path:'/home/claude/chk-desk.png'});
+  await d.screenshot({path:OUT + '/chk-desk.png'});
   const ov = await d.evaluate(()=>document.documentElement.scrollWidth > innerWidth); if (ov) problems.push('desktop horizontal overflow');
   // phone
   const p = await b.newPage({viewport:{width:390,height:844}, deviceScaleFactor:2, isMobile:true, hasTouch:true}); watch(p,'phone');
@@ -28,7 +29,7 @@ const BASE = process.argv[2] || 'http://localhost:8787';
       return {overlap: w[1].left < w[0].right-1 && w[1].top < w[0].bottom-2 && w[1].bottom > w[0].top+2, rule: document.getElementById('nbLine').getBoundingClientRect().top}; });
     if (r.overlap) problems.push(`phone name words overlap at scroll ${y}`); }
   await p.evaluate(()=>{document.documentElement.style.scrollSnapType='';scrollTo(0,0)}); await p.waitForTimeout(200);
-  await p.screenshot({path:'/home/claude/chk-phone.png'});
+  await p.screenshot({path:OUT + '/chk-phone.png'});
   if (await p.evaluate(()=>document.documentElement.scrollWidth > innerWidth)) problems.push('phone horizontal overflow');
   await p.tap('.vbtn[data-view="grid"]'); await p.waitForTimeout(700); log('grid: ' + await p.evaluate(()=>document.documentElement.classList.contains('grid-view')));
   await p.tap('.vbtn[data-view="list"]'); await p.waitForTimeout(700);
@@ -39,7 +40,7 @@ const BASE = process.argv[2] || 'http://localhost:8787';
   // privacy
   const q = await b.newPage({viewport:{width:390,height:844}, isMobile:true}); watch(q,'privacy');
   const res = await q.goto(BASE + '/privacy'); log('privacy status ' + res.status());
-  await q.screenshot({path:'/home/claude/chk-privacy.png', fullPage:true});
+  await q.screenshot({path:OUT + '/chk-privacy.png', fullPage:true});
   for (const f of ['/robots.txt','/sitemap.xml','/og.png','/favicon.svg','/apple-touch-icon.png','/assets/headshot.jpg','/assets/poster-velvet.jpg','/assets/poster-zalando.jpg','/assets/poster-figma.jpg']) {
     const r = await q.request.get(BASE + f); if (r.status() !== 200) problems.push(`${f} -> ${r.status()}`); }
   log('PROBLEMS: ' + (problems.length ? '\n - ' + problems.join('\n - ') : 'none'));

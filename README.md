@@ -23,3 +23,13 @@ Add an entry to `WORKS` in `index.html`:
 
 Keep full-length films on YouTube or Vimeo. Only short, silent, compressed clips (H.264 MP4, around 720p, ideally under 5 MB)
 belong in this repo: GitHub refuses files over 100 MB, and every visitor's download counts against Vercel's bandwidth.
+
+## Health check
+
+`checks/` holds a local test run (not deployed, see `.vercelignore`):
+
+    node checks/serve.js . 8787 &      # mimics Vercel: clean URLs + headers from vercel.json
+    node checks/check.js http://localhost:8787
+
+It loads the site at desktop and phone sizes, opens every panel, scrolls the name animation, switches views,
+checks every asset and the privacy page, and lists any problems. Screenshots land in /tmp (or $OUT).
