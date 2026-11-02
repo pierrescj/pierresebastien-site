@@ -51,7 +51,10 @@ a{color:inherit;text-decoration:none}
 .caps{font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:500}
 .muted{color:var(--muted)}
 .link{background:linear-gradient(var(--neon),var(--neon)) 0 100%/0 40% no-repeat;transition:background-size 200ms var(--ease)}
-.link:hover{background-size:100% 40%}
+.link:hover,.link:focus-visible,.link:active,.link[aria-expanded="true"]{background-size:100% 40%}
+.link:focus-visible{outline:none}
+@media (hover:none){ .nav .link{background-size:100% 3px} .nav .link:active,.nav .link[aria-expanded="true"]{background-size:100% 40%} }
+button,a{-webkit-tap-highlight-color:transparent}
 .it,.slate .big,.blurb .lead{font-family:var(--pixel);font-style:normal;font-weight:700;letter-spacing:-.045em}
 .react .c,.it .c{display:inline-block;transform-origin:50% 85%;transform:translateY(var(--y,0px)) rotate(var(--r,0deg)) scale(var(--sx,1),var(--sy,1));transition:transform 180ms var(--ease)}
 .react .w,.it .w{display:inline-block;white-space:nowrap}
@@ -60,7 +63,7 @@ a{color:inherit;text-decoration:none}
 .app{height:100%;display:grid;grid-template-rows:auto minmax(0,1fr);gap:clamp(16px,3vh,32px);padding:var(--pad)}
 .top{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:24px}
 .name{margin:0;font-size:clamp(38px,min(4.6vw,9vh),86px);line-height:.95;cursor:default;width:fit-content}
-.roles{margin-top:12px}
+.roles{margin-top:12px;color:var(--muted)}
 .side{display:flex;flex-direction:column;align-items:flex-end;gap:10px;text-align:right}
 .nav{display:flex;gap:22px;align-items:baseline;flex-wrap:wrap;justify-content:flex-end}
 .mail{display:inline-flex;gap:8px;align-items:baseline}
@@ -133,7 +136,11 @@ dialog[open] .panel{animation:rise 220ms var(--ease)}
 .panel.settle{transition:transform 260ms var(--ease), opacity 260ms var(--ease)}
 .panel-top{display:flex;align-items:center;gap:16px;padding-bottom:14px;border-bottom:1px solid var(--blue)}
 .x{width:44px;height:44px;border-radius:50%;background:var(--blue);color:var(--paper);display:grid;place-items:center;flex:none;transition:background 140ms,color 140ms,transform 200ms var(--spring)}
-.x:hover{background:var(--neon);color:var(--ink);transform:rotate(90deg)}
+@media (hover:hover){ .x:hover{background:var(--neon);color:var(--ink);transform:rotate(90deg)} }
+.x:active,.x.hit{background:var(--neon);color:var(--ink);transform:rotate(90deg) scale(.92)}
+.x:focus{outline:none}
+.x:focus-visible{box-shadow:0 0 0 3px var(--paper),0 0 0 5px var(--blue)}
+.panel:focus{outline:none}
 .x svg{width:16px;height:16px}
 .panel-top .t{font-size:clamp(22px,2.4vw,36px);line-height:1.05}
 .grab{display:none}
@@ -145,7 +152,12 @@ dialog[open] .panel{animation:rise 220ms var(--ease)}
 .info img{width:clamp(150px,18vw,260px);height:auto;border-radius:14px}
 .blurb{margin:0 0 22px;max-width:56ch}
 .blurb p{margin:0 0 12px;font-size:clamp(16px,1.35vw,19px);line-height:1.45;color:var(--blue)}
-.blurb .lead{font-size:clamp(26px,2.4vw,38px);line-height:1.05;margin-bottom:16px;padding-top:.05em}
+.blurb .lead{font-size:clamp(26px,2.4vw,38px);line-height:1.05;margin-bottom:16px;padding-top:.05em;display:flex;align-items:flex-end;gap:.32em}
+.waver{width:.8em;height:1.03em;flex:none;overflow:visible;margin-bottom:-.02em}
+.waver .arm{transform-box:view-box;transform-origin:12px 16px}
+dialog[open] .waver .arm{animation:wave 1.1s var(--ease) .35s 2}
+.lead:hover .waver .arm{animation:wave 1.1s var(--ease) infinite}
+@keyframes wave{0%,100%{transform:rotate(0)}20%{transform:rotate(-16deg)}45%{transform:rotate(12deg)}70%{transform:rotate(-10deg)}}
 .info dl{margin:0;display:grid;grid-template-columns:minmax(110px,170px) minmax(0,1fr);border-top:1px solid var(--blue)}
 .info dt,.info dd{margin:0;padding:14px 0;border-bottom:1px solid var(--line)}
 .info dt{padding-top:17px;color:var(--muted)}
@@ -265,7 +277,7 @@ dialog[open] .panel{animation:rise 220ms var(--ease)}
 <div id="dot" aria-hidden="true"></div>
 
 <dialog id="viewer" aria-labelledby="vTitle">
-  <div class="panel">
+  <div class="panel" tabindex="-1" autofocus>
     <div class="grab" aria-hidden="true"></div>
     <div class="panel-top">
       <button class="x" type="button" data-close aria-label="Close"><svg viewBox="0 0 16 16"><path d="M3 3l10 10M13 3L3 13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
@@ -277,7 +289,7 @@ dialog[open] .panel{animation:rise 220ms var(--ease)}
 </dialog>
 
 <dialog id="infoPanel" aria-label="Info">
-  <div class="panel">
+  <div class="panel" tabindex="-1" autofocus>
     <div class="grab" aria-hidden="true"></div>
     <div class="panel-top">
       <button class="x" type="button" data-close aria-label="Close"><svg viewBox="0 0 16 16"><path d="M3 3l10 10M13 3L3 13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
@@ -287,10 +299,9 @@ dialog[open] .panel{animation:rise 220ms var(--ease)}
       <img src="assets/headshot.jpg?v=2" alt="Halftone portrait of Pierre-Sebastien Cabrejo-Jones" width="720" height="949">
       <div>
         <div class="blurb">
-          <p class="lead react">Hi, I'm Pierre-Sebastien.</p>
-          <p class="react">I direct, shoot and edit, after about a decade on film and TV sets in Canada. These days I work out of London.</p>
-          <p class="react">I like a set that feels like a team, a brief with a little room to play, and the moment a plan meets real light and gets better. I'm still learning on every job, and glad of it. If there's something new to try, I'll usually say yes before you finish the sentence.</p>
-          <p class="react">Easy to work with. Quick to laugh. Serious about the frame.</p>
+          <p class="lead"><span class="react">Hi,</span><svg class="waver" viewBox="0 0 28 36" role="img" aria-label="a little person waving"><g fill="none" stroke="currentColor" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="6" r="3.4" fill="currentColor" stroke-width="2.4"/><path d="M12 13.5v10M12 23.5l-5 10M12 23.5l5 10M12 16l-6 6"/><path class="arm" d="M12 16l7-4l2-8"/></g></svg></p>
+          <p class="react">I'm Pierre. After a decade on film and TV sets in Canada, I now work out of London. I direct and shoot.</p>
+          <p class="react">Always keen to try something new and learn more everyday.</p>
         </div>
         <dl>
           <dt class="caps">Based</dt><dd>London</dd>
@@ -419,14 +430,17 @@ stage.addEventListener("pointermove", e=>{
 stage.addEventListener("pointerleave", ()=>{ stage.style.setProperty("--px","0px"); stage.style.setProperty("--py","0px"); });
 
 /* panels: open, close with the X, Escape, or a swipe down */
-document.querySelectorAll("[data-open]").forEach(b=>b.addEventListener("click", ()=>{ const d = document.getElementById(b.dataset.open); d.showModal(); fitAll(d); }));
+document.querySelectorAll("[data-open]").forEach(b=>{ b.setAttribute("aria-expanded","false"); b.addEventListener("click", ()=>{ const d = document.getElementById(b.dataset.open); b.setAttribute("aria-expanded","true"); d.showModal(); fitAll(d); }); });
 document.querySelectorAll("dialog").forEach(d=>{
   const panel = d.querySelector(".panel");
-  d.querySelector("[data-close]").addEventListener("click", ()=>d.close());
+  const x = d.querySelector("[data-close]");
+  x.addEventListener("click", ()=>{ x.classList.add("hit"); setTimeout(()=>d.close(), reduce ? 0 : 150); });
   d.addEventListener("close", ()=>{
     const v = d.querySelector("video"); if(v) v.pause();
     const f = d.querySelector("iframe"); if(f) f.remove();
     panel.style.transform = ""; panel.style.opacity = "";
+    x.classList.remove("hit");
+    const opener = document.querySelector(`[data-open="${d.id}"]`); if(opener) opener.setAttribute("aria-expanded","false");
   });
   let y0 = null, x0 = 0, dy = 0, t0 = 0;
   panel.addEventListener("touchstart", e=>{
@@ -490,42 +504,71 @@ document.querySelectorAll("dialog").forEach(d=>{
 (function(){
   const bar = $("#namebar"), bg = $("#nbBg"), nb = $("#nbName");
   const small = [...nb.querySelectorAll(".nw")];
-  let big = [], C = [], B = [], ticking = false;
-  const DIST = 150;                                   /* px of scrolling over which the name shrinks */
-  const ease = t => 1 - Math.pow(1 - t, 3);
+  const DIST = 170;                                   /* px of scrolling over which the name shrinks */
+  const smooth = t => t * t * (3 - 2 * t);
+  const out = t => 1 - (1 - t) * (1 - t);
+  const clamp = t => Math.min(1, Math.max(0, t));
+  /* where supported, the browser runs the whole morph on its compositor, locked to the scroll: no JavaScript per frame */
+  const native = !reduce && CSS.supports("animation-timeline: scroll()") && CSS.supports("animation-range: 0px 100px");
+  const sheet = document.head.appendChild(document.createElement("style"));
+  let C = [], B = [], delay = 0, ticking = false;
   nb.addEventListener("click", ()=>scrollTo({top:0, behavior: reduce ? "auto" : "smooth"}));
 
+  /* every word's box at progress p (0 = big at the top, 1 = one line in the bar).
+     Later words slide across early and only rise once there is room, so words never overlap. */
+  function frame(p, a = delay){
+    const e = smooth(p), ey = smooth(clamp((p - a) / (1 - a))), ex = out(clamp(p / .6));
+    return small.map((w,i)=>{
+      const s0 = B[i].h / C[i].height, sc = s0 + (1 - s0) * (i ? out(clamp(p / .75)) : e);   /* later words shrink as they travel */
+      const left = B[i].x + (C[i].left - B[i].x) * (i ? ex : e);
+      const top = B[i].y + (C[i].top - B[i].y) * (i ? ey : e);
+      return {left, top, w: C[i].width * sc, h: C[i].height * sc, sc,
+              css: `translate3d(${(left - C[i].left).toFixed(2)}px,${(top - C[i].top).toFixed(2)}px,0) scale(${sc.toFixed(4)})`};
+    });
+  }
+  function clashes(a){
+    for(let k = 0; k <= 60; k++){
+      const f = frame(k / 60, a);
+      for(let i = 1; i < f.length; i++){
+        const P = f[i-1], Q = f[i];
+        if(Q.left < P.left + P.w + 4 && Q.top < P.top + P.h * .92 && Q.top + Q.h > P.top) return true;
+      }
+    }
+    return false;
+  }
   function measure(){
-    if(!phone.matches) return;
-    big = [...nameEl.querySelectorAll(".w")];
+    sheet.textContent = "";
     small.forEach(w=>w.style.transform = "");
+    if(!phone.matches) return;
     nb.style.fontSize = "";
     const room = bar.clientWidth - nb.offsetLeft * 2;  /* keep the one-line name inside the bar */
     if(nb.scrollWidth > room) nb.style.fontSize = `${(parseFloat(getComputedStyle(nb).fontSize) * room / nb.scrollWidth * .97).toFixed(1)}px`;
     C = small.map(w=>w.getBoundingClientRect());
-    B = big.map(w=>{ const r = w.getBoundingClientRect(); return {x:r.left, y:r.top + scrollY, h:r.height}; });
-    update();
+    B = [...nameEl.querySelectorAll(".w")].map(w=>{ const r = w.getBoundingClientRect(); return {x:r.left, y:r.top + scrollY, h:r.height}; });
+    if(B.length !== small.length) return;
+    delay = 0; while(delay < .9 && clashes(delay)) delay += .02;
+    if(native){
+      const N = 40, range = `animation-timeline:scroll(root block);animation-range:0px ${DIST}px`;
+      let css = "";
+      small.forEach((w,i)=>{
+        let k = "";
+        for(let n = 0; n <= N; n++) k += `${(n / N * 100).toFixed(2)}%{transform:${frame(n / N)[i].css}}`;
+        css += `@keyframes nbw${i}{${k}}#nbName .nw:nth-of-type(${i+1}){animation:nbw${i} linear both;${range}}`;
+      });
+      css += `@keyframes nbbg{from{opacity:0}to{opacity:1}}#nbBg{animation:nbbg linear both;${range}}`;
+      sheet.textContent = css;
+    } else update();
   }
   function update(){
     ticking = false;
-    if(!phone.matches || !B.length) return;
-    const p = Math.min(1, Math.max(0, scrollY / DIST)), e = reduce ? (p > .5 ? 1 : 0) : ease(p);
-    const ex = reduce ? e : ease(Math.min(1, p * 1.8));   /* the second word slides across first, then up */
-    let prev = null;
-    small.forEach((w,i)=>{
-      const s0 = B[i].h / C[i].height, sc = s0 + (1 - s0) * e;
-      let left = B[i].x + (C[i].left - B[i].x) * (i ? ex : e);
-      const top = B[i].y + (C[i].top - B[i].y) * e;
-      if(prev && top < prev.top + prev.h){                  /* sharing a line: keep a word-space after the previous word */
-        left = Math.max(left, prev.right + (C[i].left - C[i-1].right) * sc);
-      }
-      w.style.transform = `translate3d(${(left - C[i].left).toFixed(1)}px,${(top - C[i].top).toFixed(1)}px,0) scale(${sc.toFixed(4)})`;
-      prev = {right: left + C[i].width * sc, top, h: C[i].height * sc};
-    });
-    bg.style.opacity = e.toFixed(3);
+    if(native || !phone.matches || !B.length) return;
+    const p = clamp(scrollY / DIST), q = reduce ? (p > .5 ? 1 : 0) : p;
+    frame(q).forEach((f,i)=>small[i].style.transform = f.css);
+    bg.style.opacity = q.toFixed(3);
   }
-  addEventListener("scroll", ()=>{ if(!ticking){ ticking = true; requestAnimationFrame(update); } }, {passive:true});
-  addEventListener("resize", ()=>requestAnimationFrame(measure));
+  if(!native) addEventListener("scroll", ()=>{ if(!ticking){ ticking = true; requestAnimationFrame(update); } }, {passive:true});
+  let rw = innerWidth;   /* phones fire resize when the toolbar hides; only re-measure when the width really changes */
+  addEventListener("resize", ()=>{ if(innerWidth !== rw){ rw = innerWidth; setTimeout(measure, 160); } });
   phone.addEventListener("change", measure);
   (document.fonts ? document.fonts.ready : Promise.resolve()).then(()=>requestAnimationFrame(measure));
   measure();
