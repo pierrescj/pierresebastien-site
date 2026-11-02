@@ -130,8 +130,10 @@ dialog[open] .panel{animation:rise 220ms var(--ease)}
 .panel{
   height:100%;display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:20px;background:var(--paper);
   padding:max(var(--pad), env(safe-area-inset-top)) var(--pad) max(var(--pad), env(safe-area-inset-bottom));
-  touch-action:pan-x;will-change:transform;
+  touch-action:pan-y;will-change:transform;overscroll-behavior:contain;
 }
+html.modal-open,html.modal-open body{overflow:hidden}
+dialog{overscroll-behavior:contain}
 .panel.dragging{transition:none}
 .panel.settle{transition:transform 260ms var(--ease), opacity 260ms var(--ease)}
 .panel-top{display:flex;align-items:center;gap:16px;padding-bottom:14px;border-bottom:1px solid var(--blue)}
@@ -148,7 +150,7 @@ dialog[open] .panel{animation:rise 220ms var(--ease)}
 .screen{position:relative;width:min(100cqw, calc(100cqh * 16 / 9));aspect-ratio:16/9;border-radius:var(--r);overflow:hidden;background:var(--blue)}
 .screen img,.screen video,.screen iframe{width:100%;height:100%;object-fit:cover;border:0;display:block}
 .panel-foot{display:flex;justify-content:space-between;align-items:baseline;gap:20px;flex-wrap:wrap;padding-top:14px;border-top:1px solid var(--blue)}
-.info{display:grid;grid-template-columns:auto minmax(0,1fr);gap:clamp(20px,4vw,64px);align-content:center;align-items:start;max-width:1040px;width:100%;margin:0 auto;overflow:auto;min-height:0}
+.info{overscroll-behavior:contain;-webkit-overflow-scrolling:touch;display:grid;grid-template-columns:auto minmax(0,1fr);gap:clamp(20px,4vw,64px);align-content:center;align-items:start;max-width:1040px;width:100%;margin:0 auto;overflow:auto;min-height:0}
 .info img{width:clamp(150px,18vw,260px);height:auto;border-radius:14px}
 .blurb{margin:0 0 22px;max-width:56ch}
 .blurb p{margin:0 0 12px;font-size:clamp(16px,1.35vw,19px);line-height:1.45;color:var(--blue)}
@@ -194,8 +196,7 @@ dialog[open] .waver .arm{animation:wave 1.1s var(--ease) .35s 2}
     position:absolute;left:var(--pad);bottom:12px;font-size:18px;line-height:1;white-space:nowrap;
     color:var(--blue);pointer-events:auto;text-align:left;padding:0;
   }
-  .nb-name .nw{display:inline-block}
-  .nb-name .nl{display:inline-block;transform-origin:0 0;will-change:transform}
+  .nb-name .nw{display:inline-block;transform-origin:0 0;will-change:transform}
 
   .work{display:block}
   .stage-wrap{display:none}
@@ -230,6 +231,11 @@ dialog[open] .waver .arm{animation:wave 1.1s var(--ease) .35s 2}
   .row.on .t-role{color:var(--muted)}
   .hint{display:none}
 
+  /* the header lines fade as they slide up under the name */
+  @supports (animation-timeline: view()){
+    .top .roles,.top .nav,.top .clockline{animation:tuck linear both;animation-timeline:view(block var(--tuck, 80px) 0px);animation-range:exit 0% exit 100%}
+  }
+
   /* list or grid, the visitor's choice */
   .work{margin-top:0}
   .views{display:flex;justify-content:flex-end;gap:6px;padding:12px 0 0}
@@ -261,6 +267,7 @@ dialog[open] .waver .arm{animation:wave 1.1s var(--ease) .35s 2}
   .info dl{grid-template-columns:100px minmax(0,1fr)}
 }
 ::view-transition-group(*){animation-duration:420ms;animation-timing-function:cubic-bezier(.2,.8,.2,1)}
+@keyframes tuck{to{opacity:0}}
 @keyframes card-zoom{0%{transform:scale(.7)}50%{transform:scale(1)}100%{transform:scale(.7)}}
 @keyframes img-zoom{0%{transform:scale(1.26)}50%{transform:scale(1.02)}100%{transform:scale(1.26)}}
 @media (prefers-reduced-motion:reduce){ *,*::before,*::after{transition-duration:1ms !important;animation-duration:1ms !important} }
@@ -335,7 +342,6 @@ dialog[open] .waver .arm{animation:wave 1.1s var(--ease) .35s 2}
           <p class="react">Always keen to try something new and learn more everyday.</p>
         </div>
         <dl>
-          <dt class="caps">Based</dt><dd>London</dd>
           <dt class="caps">Languages</dt><dd>English, French, Spanish</dd>
           <dt class="caps">Contact</dt><dd><a class="link" href="mailto:pierre.scj@gmail.com">pierre.scj@gmail.com</a></dd>
           <dt class="caps">Instagram</dt><dd><a class="link" href="https://www.instagram.com/pierrescj/" target="_blank" rel="noopener">@pierrescj<svg class="arrow" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 9L9 3M4 3h5v5" fill="none" stroke="currentColor" stroke-width="1"/></svg></a></dd>
@@ -473,30 +479,44 @@ document.querySelectorAll("dialog").forEach(d=>{
     x.classList.remove("hit");
     const opener = document.querySelector(`[data-open="${d.id}"]`); if(opener) opener.setAttribute("aria-expanded","false");
   });
-  let y0 = null, x0 = 0, dy = 0, t0 = 0;
+  /* swipe down to close. On Info, only once the text is scrolled to the top, and with more resistance */
+  const scroller = d.querySelector(".info"), firm = !!scroller;
+  let y0 = null, x0 = 0, dy = 0, t0 = 0, dragging = false;
   panel.addEventListener("touchstart", e=>{
+    y0 = null;
     if(e.target.closest("iframe,video")) return;
-    y0 = e.touches[0].clientY; x0 = e.touches[0].clientX; dy = 0; t0 = performance.now();
-    panel.classList.remove("settle"); panel.classList.add("dragging");
+    if(scroller && scroller.contains(e.target) && scroller.scrollTop > 0) return;
+    y0 = e.touches[0].clientY; x0 = e.touches[0].clientX; dy = 0; dragging = false;
   }, {passive:true});
   panel.addEventListener("touchmove", e=>{
     if(y0===null) return;
-    dy = Math.max(0, e.touches[0].clientY - y0);
-    if(Math.abs(e.touches[0].clientX - x0) > dy) return;
+    const ty = e.touches[0].clientY, tx = e.touches[0].clientX;
+    if(!dragging){
+      const down = ty - y0;
+      if(down < -4 || Math.abs(tx - x0) > Math.abs(down)){ if(Math.abs(tx - x0) > 10 || down < -4) y0 = null; return; }
+      if(down < (firm ? 14 : 8)) return;
+      if(scroller && scroller.scrollTop > 0){ y0 = null; return; }
+      dragging = true; y0 = ty; t0 = performance.now();
+      panel.classList.remove("settle"); panel.classList.add("dragging");
+    }
+    if(e.cancelable) e.preventDefault();
+    const pull = Math.max(0, ty - y0);
+    dy = firm ? pull * .5 : pull;                           /* Info feels heavier to pull */
     panel.style.transform = `translateY(${dy}px) scale(${1 - Math.min(dy/3000, .05)})`;
     panel.style.opacity = String(1 - Math.min(dy/700, .5));
-  }, {passive:true});
+  }, {passive:false});
   panel.addEventListener("touchend", ()=>{
-    if(y0===null) return;
-    const fast = dy / Math.max(1, performance.now() - t0) > .6;
+    if(!dragging){ y0 = null; return; }
+    const speed = dy / Math.max(1, performance.now() - t0);
     panel.classList.remove("dragging"); panel.classList.add("settle");
-    if(dy > 120 || (fast && dy > 40)){
+    const close = firm ? (dy > 150 || (speed > .5 && dy > 80)) : (dy > 120 || (speed > .6 && dy > 40));
+    if(close){
       panel.style.transform = `translateY(${innerHeight}px)`; panel.style.opacity = "0";
       setTimeout(()=>{ d.close(); panel.classList.remove("settle"); }, 240);
     }else{
       panel.style.transform = ""; panel.style.opacity = "";
     }
-    y0 = null;
+    y0 = null; dragging = false;
   });
 });
 function ytId(url){ const m = String(url).match(/(?:youtu\.be\/|v=|embed\/|shorts\/)([\w-]{11})/); return m ? m[1] : ""; }
@@ -526,7 +546,7 @@ addEventListener("pointermove", e=>{
 }, {passive:true});
 document.documentElement.addEventListener("mouseleave", ()=>dot.classList.remove("on"));
 document.querySelectorAll("dialog").forEach(d=>{
-  new MutationObserver(()=>{ const open = document.querySelector("dialog[open]"); (open || document.body).appendChild(dot); })
+  new MutationObserver(()=>{ const open = document.querySelector("dialog[open]"); (open || document.body).appendChild(dot); document.documentElement.classList.toggle("modal-open", !!open); })
     .observe(d, {attributes:true, attributeFilter:["open"]});
 });
 
@@ -534,64 +554,80 @@ document.querySelectorAll("dialog").forEach(d=>{
    Tapping the name in the bar takes you back to the top. The centred piece zooms in via observers and CSS. */
 (function(){
   const bar = $("#namebar"), bg = $("#nbBg"), nb = $("#nbName"), top = $("#top");
-  const words = [...nb.querySelectorAll(".nw")];
-  let li0 = 0;
-  words.forEach(w=>w.innerHTML = [...w.textContent].map(ch=>`<span class="nl" data-i="${li0++}">${ch}</span>`).join(""));
-  const L = [...nb.querySelectorAll(".nl")];
-  const word = L.map(l=>words.indexOf(l.parentElement));
-  /* the order letters leave in: the first name left to right, then the surname from its last letter back,
-     so every letter always has a clear lane to hop into its place */
-  const n0 = L.filter((l,i)=>word[i]===0).length;
-  const seq = L.map((l,i)=>word[i]===0 ? i : n0 + (L.length - 1 - i));
-  const WIN = .3, step = (1 - WIN) / Math.max(1, L.length - 1);
+  const W = [...nb.querySelectorAll(".nw")];
+  W.forEach(w=>w.style.transformOrigin = "0 0");
   const smooth = t => t * t * (3 - 2 * t);
   const clamp = t => Math.min(1, Math.max(0, t));
   const native = !reduce && CSS.supports("animation-timeline: scroll()") && CSS.supports("animation-range: 0px 100px");
   const sheet = document.head.appendChild(document.createElement("style"));
-  let C = [], B = [], DIST = 180, ticking = false;
+  let C = [], B = [], DIST = 180, Y1 = 60, den = 1, s1 = .5, delay = .5, ticking = false;
   nb.addEventListener("click", ()=>scrollTo({top:0, behavior: reduce ? "auto" : "smooth"}));
 
-  /* one letter at overall progress p: it waits its turn, then hops from the big name into the bar */
-  function letter(i, p){
-    const t = clamp((p - seq[i] * step) / WIN), b = B[i], c = C[i];
-    let ex, ey, es, hop;
-    if(word[i] === 0){ ex = ey = es = smooth(t); hop = Math.sin(Math.PI * t) * b.h * .18; }
-    else { ex = smooth(clamp(t / .6)); ey = smooth(clamp((t - .4) / .6)); es = smooth(clamp(t / .8)); hop = Math.sin(Math.PI * ey) * b.h * .22; }
-    const s0 = b.h / c.height, sc = s0 + (1 - s0) * es;
-    const x = b.x + (c.left - b.x) * ex, y = b.y + (c.top - b.y) * ey - hop;
-    return {x, y, w: c.width * sc, h: c.height * sc,
-            css: `translate3d(${(x - c.left).toFixed(2)}px,${(y - c.top).toFixed(2)}px,0) scale(${sc.toFixed(4)})`};
+  /* The name is one block. First it shrinks as a whole, its bottom edge riding exactly on the page as it scrolls,
+     so nothing ever slides underneath it. Once it is small and tucked into the bar,
+     the surname slides across and settles beside the first name, on one line. */
+  function frame(y, a = delay){
+    const b0 = B[0];
+    const s = Math.max(s1, 1 - Math.max(0, y) / den);                 /* block scale */
+    const k = (1 - s) / (1 - s1);                                      /* 0..1 through the shrink */
+    const top0 = b0.y + (C[0].top - b0.y) * k, left0 = b0.x + (C[0].left - b0.x) * k;
+    const q = Y1 >= DIST ? 1 : clamp((y - Y1) / (DIST - Y1));          /* 0..1 through the slide */
+    return W.map((w,i)=>{
+      const b = B[i], c = C[i], sc = b.h * s / c.height;
+      let x = left0 + (b.x - b0.x) * s, yy = top0 + (b.y - b0.y) * s;
+      if(i){
+        const ex = smooth(clamp(q / .65)), ey = smooth(clamp((q - a) / (1 - a)));
+        x += (c.left - x) * ex; yy += (c.top - yy) * ey - Math.sin(Math.PI * ey) * c.height * .35;
+      }
+      return {x, y: yy, w: c.width * sc, h: c.height * sc,
+              css: `translate3d(${(x - c.left).toFixed(2)}px,${(yy - c.top).toFixed(2)}px,0) scale(${sc.toFixed(4)})`};
+    });
   }
-  window.nbLetter = letter; window.nbCount = ()=>L.length;   /* for testing */
+  function clashes(a){
+    for(let n = 0; n <= 80; n++){
+      const f = frame(Y1 + (DIST - Y1) * n / 80, a);
+      for(let i = 1; i < f.length; i++){
+        const P = f[i-1], Q = f[i];
+        if(Q.x < P.x + P.w + 3 && Q.y < P.y + P.h * .9 && Q.y + Q.h * .9 > P.y) return true;
+      }
+    }
+    return false;
+  }
+  window.nbFrame = frame;   /* for testing */
 
   function measure(){
     sheet.textContent = "";
-    L.forEach(l=>l.style.transform = "");
+    W.forEach(w=>w.style.transform = "");
     if(!phone.matches) return;
     nb.style.fontSize = "";
     const room = bar.clientWidth - nb.offsetLeft * 2;
     if(nb.scrollWidth > room) nb.style.fontSize = `${(parseFloat(getComputedStyle(nb).fontSize) * room / nb.scrollWidth * .97).toFixed(1)}px`;
-    C = L.map(l=>l.getBoundingClientRect());
-    B = [...nameEl.querySelectorAll(".c")].map(c=>{ const r = c.getBoundingClientRect(); return {x:r.left, y:r.top + scrollY, h:r.height}; });
-    if(B.length !== L.length) return;
-    /* finish the morph by the time the header has gone under the bar, and before the first card settles in the middle */
+    C = W.map(w=>w.getBoundingClientRect());
+    B = [...nameEl.querySelectorAll(".w")].map(w=>{ const r = w.getBoundingClientRect(); return {x:r.left, y:r.top + scrollY, h:r.height}; });
+    if(B.length !== W.length) return;
+    /* shrink phase: the block's bottom follows the page */
+    const last = B[B.length - 1], blockH = last.y + last.h - B[0].y;
+    document.documentElement.style.setProperty("--tuck", `${Math.round(bar.offsetHeight + C[0].height + 6)}px`);
+    s1 = C[0].height / B[0].h;
+    den = blockH - (C[0].top - B[0].y) / (1 - s1);
+    Y1 = Math.max(20, (1 - s1) * den);
+    /* end of the slide: once the header has gone under the bar, and before the first card settles */
     let d = top.getBoundingClientRect().bottom + scrollY - bar.offsetHeight;
     if(!document.documentElement.classList.contains("grid-view")){
       const li = $("#list li"); if(li){ const r = li.getBoundingClientRect(); d = Math.min(d, r.top + scrollY + r.height / 2 - (56 + innerHeight) / 2 - 8); }
     }
-    DIST = Math.round(Math.max(120, Math.min(260, d)));
+    DIST = Math.round(Math.max(Y1 + 60, Math.min(Y1 + 200, d)));
+    delay = .3; while(delay < .9 && clashes(delay)) delay += .02;
     if(native){
       const range = `animation-timeline:scroll(root block);animation-range:0px ${DIST}px`;
+      const pts = [0, Y1];
+      for(let n = 1; n <= 24; n++) pts.push(Y1 + (DIST - Y1) * n / 24);
       let css = "";
-      L.forEach((l,i)=>{
-        const s0 = seq[i] * step, pts = [0];
-        for(let k = 0; k <= 10; k++) pts.push(s0 + WIN * k / 10);
-        pts.push(1);
-        const kf = [...new Set(pts.map(p=>Math.min(1, p).toFixed(4)))].map(Number).sort((a,b)=>a-b)
-          .map(p=>`${(p * 100).toFixed(2)}%{transform:${letter(i, p).css}}`).join("");
-        css += `@keyframes nbl${i}{${kf}}#nbName .nl[data-i="${i}"]{animation:nbl${i} linear both;${range}}`;
+      W.forEach((w,i)=>{
+        const kf = pts.map(y=>`${(y / DIST * 100).toFixed(3)}%{transform:${frame(y)[i].css}}`).join("");
+        css += `@keyframes nbw${i}{${kf}}#nbName .nw:nth-of-type(${i + 1}){animation:nbw${i} linear both;${range}}`;
       });
-      css += `@keyframes nbbg{from{opacity:0}to{opacity:1}}#nbBg{animation:nbbg linear both;${range}}`;
+      css += `@keyframes nbbg{0%{opacity:0}${(Y1 / DIST * 100).toFixed(2)}%{opacity:.85}100%{opacity:1}}#nbBg{animation:nbbg linear both;${range}}`;
       sheet.textContent = css;
     } else update();
   }
@@ -599,9 +635,10 @@ document.querySelectorAll("dialog").forEach(d=>{
   function update(){
     ticking = false;
     if(native || !phone.matches || !B.length) return;
-    const p = clamp(scrollY / DIST), q = reduce ? (p > .5 ? 1 : 0) : p;
-    L.forEach((l,i)=>l.style.transform = letter(i, q).css);
-    bg.style.opacity = q.toFixed(3);
+    let y = Math.max(0, scrollY);
+    if(reduce) y = y > DIST / 2 ? DIST : 0;
+    frame(Math.min(y, DIST)).forEach((f,i)=>W[i].style.transform = f.css);
+    bg.style.opacity = Math.min(1, y / Y1 * .85 + Math.max(0, y - Y1) / (DIST - Y1) * .15).toFixed(3);
   }
   if(!native) addEventListener("scroll", ()=>{ if(!ticking){ ticking = true; requestAnimationFrame(update); } }, {passive:true});
   let rw = innerWidth;   /* phones fire resize when the toolbar hides; only re-measure when the width really changes */
