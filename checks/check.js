@@ -6,7 +6,7 @@ const OUT = process.env.OUT || '/tmp';
   const b = await chromium.launch(); const problems = []; const log = m => console.log(m);
   const watch = (p, tag) => { p.on('pageerror', e => problems.push(`${tag} JS error: ${e.message}`));
     p.on('console', m => { if (m.type()==='error') problems.push(`${tag} console: ${m.text()}`); });
-    p.on('requestfailed', r => problems.push(`${tag} failed request: ${r.url()}`)); };
+    p.on('requestfailed', r => { if (!/youtube|ytimg|google|gstatic|doubleclick/.test(r.url())) problems.push(`${tag} failed request: ${r.url()}`); }); };
   // desktop
   const d = await b.newPage({viewport:{width:1440,height:900}}); watch(d,'desktop');
   const t0 = Date.now(); await d.goto(BASE + '/', {waitUntil:'load'}); log(`desktop load ${Date.now()-t0}ms`);
@@ -18,6 +18,8 @@ const OUT = process.env.OUT || '/tmp';
   log('info open: ' + await d.$eval('#infoPanel', e=>e.open)); await d.screenshot({path:OUT + '/chk-desk-info.png'});
   await d.keyboard.press('Escape'); await d.waitForTimeout(300);
   await d.click('.row[data-id="figma"]'); await d.waitForTimeout(400); log('viewer open: ' + await d.$eval('#viewer', e=>e.open));
+  const embed = await d.$eval('#screen', e=>{ const f=e.querySelector('iframe'); return f ? f.src : 'no player'; });
+  log('player: ' + embed); if (!/youtube-nocookie\.com\/embed\/[\w-]{11}/.test(embed)) problems.push('figma does not open a YouTube player');
   await d.click('#viewer .x'); await d.waitForTimeout(400); log('viewer closed: ' + !(await d.$eval('#viewer', e=>e.open)));
   await d.screenshot({path:OUT + '/chk-desk.png'});
   const ov = await d.evaluate(()=>document.documentElement.scrollWidth > innerWidth); if (ov) problems.push('desktop horizontal overflow');

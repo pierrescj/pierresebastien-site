@@ -343,7 +343,7 @@ dialog[open] .waver .arm{animation:wave 1.1s var(--ease) .35s 2}
       <span class="t it">Info</span>
     </div>
     <div class="info">
-      <img src="assets/headshot.jpg?v=3" alt="Halftone portrait of Pierre-Sebastien Cabrejo-Jones" width="900" height="1187">
+      <img src="assets/headshot.jpg?v=4" alt="Halftone portrait of Pierre-Sebastien Cabrejo-Jones" width="900" height="1187">
       <div>
         <div class="blurb">
           <p class="lead"><span class="react">Hi,</span><svg class="waver" viewBox="0 0 28 36" role="img" aria-label="a little person waving"><g fill="none" stroke="currentColor" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="6" r="3.4" fill="currentColor" stroke-width="2.4"/><path d="M12 13.5v10M12 23.5l-5 10M12 23.5l5 10M12 16l-6 6"/><path class="arm" d="M12 16l7-4l2-8"/></g></svg></p>
@@ -369,11 +369,11 @@ dialog[open] .waver .arm{animation:wave 1.1s var(--ease) .35s 2}
    src:        or a short video file in assets/ to play right here
    soon:       true for work that isn't out yet */
 const WORKS = [
-  {id:"engages",  title:"Les Engagé.es",          role:"Director",        sub:"Têtu x Mastercard",          tc:"Soon", poster:"assets/poster-engages.jpg",  posterTall:"assets/poster-engages-tall.jpg",  soon:true, youtube:""},
-  {id:"velvet",   title:"Velvet Skin",            role:"DOP + Editor",    sub:"Josh Caffé, music video",    tc:"1:20", poster:"assets/poster-velvet.jpg",   posterTall:"assets/poster-velvet-tall.jpg",   youtube:""},
-  {id:"figma",    title:"Figma Artist Spotlight", role:"Videographer",                                      tc:"0:33", poster:"assets/poster-figma.jpg",    youtube:""},
-  {id:"demo",     title:"Demo Reel 2026",         role:"Camera Operator",                                   tc:"1:58", poster:"", slate:"Demo Reel 2026",                                                youtube:""},
-  {id:"birthday", title:"The Birthday Draw",      role:"Commercial",      sub:"ITV & Global",               tc:"1:14", poster:"assets/poster-birthday.jpg", posterTall:"assets/poster-birthday-tall.jpg", youtube:""}
+  {id:"engages",  title:"Les Engagé.es",          role:"Director",        sub:"Têtu x Mastercard",       tc:"Soon", poster:"assets/poster-engages.jpg?v=2",  posterTall:"assets/poster-engages-tall.jpg?v=2",  soon:true, youtube:""},
+  {id:"velvet",   title:"Velvet Skin",            role:"DOP + Editor",    sub:"Josh Caffé, music video", tc:"1:20", poster:"assets/poster-velvet.jpg?v=2",   posterTall:"assets/poster-velvet-tall.jpg?v=2",   youtube:"https://youtu.be/cmdLcrM75tc"},
+  {id:"figma",    title:"Figma Artist Spotlight", role:"Videographer",                                   tc:"0:33", poster:"assets/poster-figma.jpg?v=2",    posterTall:"assets/poster-figma-tall.jpg?v=2",    youtube:"https://youtu.be/aiOPvTRaWkg"},
+  {id:"demo",     title:"Demo Reel 2026",         role:"Camera Operator",                                tc:"1:58", poster:"", slate:"Demo Reel 2026",                                                      youtube:"https://youtu.be/0wun5-agdbI"},
+  {id:"birthday", title:"The Birthday Draw",      role:"Commercial",      sub:"ITV & Global",            tc:"1:14", poster:"assets/poster-birthday.jpg?v=2", posterTall:"assets/poster-birthday-tall.jpg?v=2", youtube:"https://youtu.be/__BZ3YQwGks"}
 ];
 WORKS.forEach((w,i)=>w.num = String(i + 1).padStart(2, "0"));
 
