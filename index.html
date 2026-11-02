@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pierre-Sebastien Cabrejo-Jones</title>
+<meta name="description" content="Pierre-Sebastien Cabrejo-Jones. Camera operator, DOP, editor and director in London.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Martian+Mono:wdth,wght@75..112.5,300..700&family=Silkscreen&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Layout: four small corners (name, links, email, Instagram) around one big index of work.
+     Hovering a title stretches it and shows its still beside the cursor. Everything else lives
+     in full-screen panels. Phones get the same index as a long scroll with images inline. */
+  --blue:#001EFF;
+  --ink:#0B1033;
+  --paper:#FFFFFF;
+  --line:#CDD4FF;
+  --muted:#5A6191;
+  --mono:"Martian Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --pixel:"Silkscreen", "Martian Mono", ui-monospace, Menlo, monospace;
+  --r:16px;
+  --ease:cubic-bezier(.2,.9,.25,1);
+  --pad:clamp(16px,2.4vw,36px);
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{
+  background:var(--paper);color:var(--blue);
+  font-family:var(--mono);font-size:13px;line-height:1.45;font-variation-settings:"wdth" 88;
+  -webkit-font-smoothing:antialiased;overflow-x:clip;
+}
+img{max-width:100%;display:block}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
+.small{font-size:12px}
+.px{font-family:var(--pixel);font-size:11px;letter-spacing:.05em;text-transform:uppercase;font-variation-settings:normal}
+.muted{color:var(--muted)}
+.link{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:4px;text-decoration-color:transparent;transition:text-decoration-color 120ms}
+.link:hover{text-decoration-color:currentColor}
+
+/* ---------- page ---------- */
+.page{height:100%;display:grid;grid-template-rows:auto minmax(0,1fr) auto;padding:var(--pad);gap:clamp(16px,3vh,32px)}
+.corners{display:flex;justify-content:space-between;align-items:flex-start;gap:24px}
+.corners.bottom{align-items:flex-end}
+.who{display:flex;flex-direction:column;gap:4px}
+.who h1{margin:0;font-size:13px;font-weight:500;color:var(--blue)}
+.nav{display:flex;gap:22px}
+.mail{display:flex;gap:10px;align-items:baseline}
+
+/* ---------- index ---------- */
+.index{display:flex;flex-direction:column;justify-content:center;min-height:0}
+.list{list-style:none;margin:0;padding:0;border-top:1px solid var(--blue)}
+.list li{border-bottom:1px solid var(--blue)}
+.row{
+  width:100%;display:grid;grid-template-columns:56px minmax(0,1fr) auto;align-items:center;gap:16px;
+  padding:clamp(4px,1.1vh,12px) 0;text-align:left;
+}
+.num{font-family:var(--pixel);font-size:11px;align-self:start;padding-top:.9em}
+.title{
+  font-size:clamp(30px,min(5.2vw,8.8vh),96px);line-height:1;letter-spacing:-.035em;font-weight:400;
+  font-variation-settings:"wdth" 75;white-space:nowrap;overflow:hidden;text-overflow:clip;
+  transition:font-variation-settings 380ms var(--ease), color 160ms;
+}
+.meta{display:flex;flex-direction:column;align-items:flex-end;gap:2px;text-align:right}
+.meta .tc{font-size:12px;font-variant-numeric:tabular-nums}
+.mthumb{display:none}
+.list.hovering .row{color:var(--line)}
+.list.hovering .row.on{color:var(--blue)}
+.row.on .title{font-variation-settings:"wdth" 100}
+
+/* still that appears beside the cursor */
+#preview{
+  position:fixed;left:0;top:0;z-index:40;pointer-events:none;
+  width:clamp(240px,26vw,460px);aspect-ratio:16/9;border-radius:var(--r);overflow:hidden;background:var(--blue);
+  opacity:0;transition:opacity 120ms;
+}
+#preview.show{opacity:1}
+#preview img{width:100%;height:100%;object-fit:cover}
+.slate{width:100%;height:100%;background:var(--blue);color:#fff;display:grid;place-content:center;text-align:center;padding:16px}
+.slate .big{font-family:var(--pixel);font-size:clamp(18px,2.2vw,34px);line-height:1;text-transform:uppercase}
+
+/* ---------- the cursor: one blue dot ---------- */
+#dot{position:fixed;left:0;top:0;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;background:var(--blue);pointer-events:none;z-index:60;display:none}
+#dot.on{display:block}
+#dot.inv{background:#fff}
+@media (pointer:fine){ html, body, *{cursor:none !important} }
+
+/* ---------- panels: viewer, info, stills ---------- */
+dialog{
+  border:0;padding:0;margin:0;width:100vw;height:100dvh;max-width:none;max-height:none;
+  background:var(--paper);color:var(--blue);
+}
+dialog::backdrop{background:var(--paper)}
+dialog[open]{animation:fade 140ms ease-out}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.panel{height:100%;display:grid;grid-template-rows:auto minmax(0,1fr) auto;padding:var(--pad);gap:20px}
+.panel-top{display:flex;justify-content:space-between;align-items:baseline;gap:20px;padding-bottom:12px;border-bottom:1px solid var(--blue)}
+.panel-top .t{font-weight:500}
+.screen-wrap{container-type:size;min-height:0;display:grid;place-items:center}
+.screen{position:relative;width:min(100cqw, calc(100cqh * 16 / 9));aspect-ratio:16/9;border-radius:var(--r);overflow:hidden;background:var(--blue)}
+.screen img,.screen video{width:100%;height:100%;object-fit:cover}
+.screen .slate .big{font-size:clamp(28px,6cqw,90px)}
+.panel-foot{display:flex;justify-content:space-between;align-items:baseline;gap:20px;flex-wrap:wrap;padding-top:12px;border-top:1px solid var(--blue)}
+
+.info{display:grid;grid-template-columns:auto minmax(0,1fr);gap:clamp(20px,4vw,64px);align-content:center;max-width:980px;width:100%;margin:0 auto}
+.info img{width:clamp(110px,14vw,180px);border-radius:12px;filter:grayscale(1)}
+.info dl{margin:0;display:grid;grid-template-columns:minmax(110px,180px) minmax(0,1fr);border-top:1px solid var(--blue)}
+.info dt,.info dd{margin:0;padding:12px 0;border-bottom:1px solid var(--blue)}
+.info dd{font-size:clamp(14px,1.4vw,18px)}
+
+.stills{display:flex;flex-wrap:wrap;gap:clamp(12px,2vw,24px);align-items:center;justify-content:center;align-content:center}
+.stills img{height:clamp(110px,22vh,200px);width:auto;border-radius:12px}
+
+/* ---------- wide but short windows ---------- */
+@media (min-width:720px) and (max-height:520px){ .page{height:auto;min-height:100%} }
+
+/* ---------- phones: one long scroll ---------- */
+@media (max-width:719px){
+  .page{height:auto;min-height:100%;grid-template-rows:none;gap:28px}
+  .corners{flex-wrap:wrap}
+  .index{justify-content:flex-start}
+  .row{grid-template-columns:auto minmax(0,1fr);grid-template-areas:"num title" "num meta" "thumb thumb";gap:4px 12px;padding:16px 0 20px}
+  .num{grid-area:num;padding-top:.6em}
+  .title{grid-area:title;font-size:clamp(30px,9.4vw,46px);white-space:normal;transition:none}
+  .meta{grid-area:meta;flex-direction:row;justify-content:space-between;align-items:baseline;text-align:left}
+  .row.on .title{font-variation-settings:"wdth" 75}
+  .mthumb{grid-area:thumb;display:block;margin-top:12px;aspect-ratio:16/9;border-radius:var(--r);overflow:hidden;background:var(--blue);will-change:transform}
+  .mthumb img{width:100%;height:100%;object-fit:cover;transform:translateY(var(--iy,0px)) scale(1.22)}
+  .mthumb .slate .big{font-size:clamp(24px,8vw,40px)}
+  .corners.bottom{flex-direction:column;align-items:flex-start;gap:10px;padding-top:16px;border-top:1px solid var(--blue)}
+  #preview{display:none}
+  .info{grid-template-columns:1fr;align-content:start}
+  .info dl{grid-template-columns:96px minmax(0,1fr)}
+  .stills{justify-content:flex-start;align-content:start}
+  .stills img{height:auto;width:calc(50% - 6px)}
+  .panel-top,.panel-foot{flex-wrap:wrap}
+}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition-duration:1ms !important;animation-duration:1ms !important}
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="corners">
+    <div class="who">
+      <h1>Pierre-Sebastien Cabrejo-Jones</h1>
+      <span class="px muted">Videographer, Camera Operator, Editor</span>
+    </div>
+    <nav class="nav" aria-label="More">
+      <button class="link" type="button" data-open="stillsPanel">Stills</button>
+      <button class="link" type="button" data-open="infoPanel">Info</button>
+    </nav>
+  </header>
+
+  <main class="index" aria-label="Work">
+    <ol class="list" id="list"></ol>
+  </main>
+
+  <footer class="corners bottom">
+    <div class="mail">
+      <a class="link" href="mailto:pierre.scj@gmail.com">pierre.scj@gmail.com</a>
+      <button class="px muted copy" type="button">Copy</button>
+    </div>
+    <a class="link" href="https://www.instagram.com/pierrescj/" target="_blank" rel="noopener">Instagram &#8599;</a>
+  </footer>
+</div>
+
+<div id="preview" aria-hidden="true"></div>
+<div id="dot" aria-hidden="true"></div>
+
+<dialog id="viewer" aria-labelledby="vTitle">
+  <div class="panel">
+    <div class="panel-top">
+      <span><span class="px" id="vNum"></span>&nbsp;&nbsp;<span class="t" id="vTitle"></span></span>
+      <button class="link" type="button" data-close>Close</button>
+    </div>
+    <div class="screen-wrap"><div class="screen" id="screen"></div></div>
+    <div class="panel-foot">
+      <span class="px" id="vSub"></span>
+      <span id="vAction" class="small"></span>
+    </div>
+  </div>
+</dialog>
+
+<dialog id="infoPanel" aria-label="Info">
+  <div class="panel">
+    <div class="panel-top"><span class="t">Info</span><button class="link" type="button" data-close>Close</button></div>
+    <div class="info">
+      <img src="assets/headshot.jpg" alt="Pierre-Sebastien Cabrejo-Jones" width="169" height="199">
+      <dl>
+        <dt class="px">Work</dt><dd>Videographer, Camera Operator, Editor</dd>
+        <dt class="px">Selected TV</dt><dd>Shōgun, Supernatural, The Good Doctor, Superman &amp; Lois</dd>
+        <dt class="px">Based</dt><dd>London</dd>
+        <dt class="px">Languages</dt><dd>English, French, Spanish</dd>
+        <dt class="px">Contact</dt><dd><a class="link" href="mailto:pierre.scj@gmail.com">pierre.scj@gmail.com</a> <button class="px muted copy" type="button">Copy</button></dd>
+        <dt class="px">Instagram</dt><dd><a class="link" href="https://www.instagram.com/pierrescj/" target="_blank" rel="noopener">@pierrescj &#8599;</a></dd>
+      </dl>
+    </div>
+    <div class="panel-foot"><span class="px muted">Visual grammar</span></div>
+  </div>
+</dialog>
+
+<dialog id="stillsPanel" aria-label="Stills">
+  <div class="panel">
+    <div class="panel-top"><span class="t">Stills</span><button class="link" type="button" data-close>Close</button></div>
+    <div class="stills">
+      <img src="assets/still-redroom.jpg" alt="A figure by a sunlit window in a red-carpeted room" width="200" height="120">
+      <img src="assets/still-rainbow.jpg" alt="Rainbow light pooling on a dark hallway floor" width="149" height="199">
+      <img src="assets/still-balloons.jpg" alt="Rainbow balloons at a Pride march" width="150" height="200">
+      <img src="assets/still-grapes.jpg" alt="Performer in a platinum wig and gold chains among bunches of grapes" width="199" height="112">
+      <img src="assets/still-cactus.jpg" alt="Saguaro cacti above a desert river" width="200" height="133">
+    </div>
+    <div class="panel-foot"><span class="px muted">05 stills</span></div>
+  </div>
+</dialog>
+
+<script>
+/* ---------- Your work. Edit this list to add, remove or reorder pieces. ----------
+   poster:  image in assets/ (leave empty for a blue title card)
+   src:     a video file in assets/ to play right here (optional)
+   youtube: a YouTube link (optional, shows a Watch on YouTube link) */
+const WORKS = [
+  {id:"demo",     num:"01", title:"Demo Reel 2026",         role:"Camera Operator", tc:"00:01:58", poster:"",                          slate:"Demo Reel 2026", src:"", youtube:""},
+  {id:"velvet",   num:"02", title:"Velvet Skin",            role:"DOP + Editor",    tc:"00:01:20", poster:"assets/poster-velvet.jpg",  src:"", youtube:""},
+  {id:"zalando",  num:"03", title:"Zalando Pride",          role:"Operator",        tc:"00:00:07", poster:"assets/poster-zalando.jpg", src:"", youtube:""},
+  {id:"figma",    num:"04", title:"Figma Artist Highlight", role:"Videographer",    tc:"00:00:33", poster:"assets/poster-figma.jpg",   src:"", youtube:""},
+  {id:"director", num:"05", title:"Coming soon",            role:"Director",        tc:"--:--:--", poster:"",                          slate:"In production", soon:true, src:"", youtube:""}
+];
+
+const $ = s => document.querySelector(s);
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fine = matchMedia("(pointer:fine)");
+const phone = matchMedia("(max-width:719px)");
+const media = w => w.poster ? `<img src="${w.poster}" alt="">` : `<div class="slate"><div class="big">${w.slate}</div></div>`;
+
+/* index */
+const list = $("#list"), preview = $("#preview");
+WORKS.forEach(w=>{
+  const li = document.createElement("li");
+  li.innerHTML = `<button class="row" type="button" data-id="${w.id}" aria-label="${w.title}, ${w.role}">
+      <span class="num">${w.num}</span>
+      <span class="title">${w.title}</span>
+      <span class="meta"><span class="px">${w.role}</span><span class="tc muted">${w.tc}</span></span>
+      <span class="mthumb">${media(w)}</span>
+    </button>`;
+  const row = li.firstElementChild;
+  row.addEventListener("pointerenter", e=>{ if(e.pointerType==="mouse") hover(w) });
+  row.addEventListener("focus", ()=>hover(w));
+  row.addEventListener("blur", unhover);
+  row.addEventListener("click", ()=>openViewer(w));
+  list.appendChild(li);
+});
+list.addEventListener("pointerleave", unhover);
+
+function hover(w){
+  list.classList.add("hovering");
+  list.querySelectorAll(".row").forEach(r=>r.classList.toggle("on", r.dataset.id===w.id));
+  if(preview.dataset.id !== w.id){ preview.innerHTML = media(w); preview.dataset.id = w.id; }
+  preview.classList.add("show");
+}
+function unhover(){
+  list.classList.remove("hovering");
+  list.querySelectorAll(".row").forEach(r=>r.classList.remove("on"));
+  preview.classList.remove("show");
+}
+
+/* still sits just below and right of the cursor, flipping near the edges */
+function placePreview(x,y){
+  const w = preview.offsetWidth, h = preview.offsetHeight, gap = 22;
+  let px = x + gap, py = y + gap;
+  if(px + w > innerWidth - 12) px = x - gap - w;
+  if(py + h > innerHeight - 12) py = y - gap - h;
+  preview.style.transform = `translate(${px}px,${py}px)`;
+}
+
+/* panels */
+function openPanel(d){ d.showModal(); }
+document.querySelectorAll("[data-open]").forEach(b=>b.addEventListener("click", ()=>openPanel(document.getElementById(b.dataset.open))));
+document.querySelectorAll("dialog").forEach(d=>{
+  d.querySelector("[data-close]").addEventListener("click", ()=>d.close());
+  d.addEventListener("close", ()=>{ const v = d.querySelector("video"); if(v) v.pause(); });
+});
+function openViewer(w){
+  unhover();
+  $("#screen").innerHTML = w.src
+    ? `<video src="${w.src}" ${w.poster?`poster="${w.poster}"`:""} controls autoplay playsinline></video>`
+    : media(w);
+  $("#vNum").textContent = w.num;
+  $("#vTitle").textContent = w.title;
+  $("#vSub").textContent = [w.role, w.soon ? "" : w.tc].filter(Boolean).join(" / ");
+  $("#vAction").innerHTML = w.youtube
+    ? `<a class="link" href="${w.youtube}" target="_blank" rel="noopener">Watch on YouTube &#8599;</a>`
+    : `<span class="muted">${w.soon ? "In production" : "Full film coming soon"}</span>`;
+  openPanel($("#viewer"));
+}
+
+/* copy email */
+document.querySelectorAll(".copy").forEach(b=>b.addEventListener("click", async ()=>{
+  try{ await navigator.clipboard.writeText("pierre.scj@gmail.com"); b.textContent = "Copied"; }
+  catch{ b.textContent = "Select it"; }
+  setTimeout(()=>b.textContent="Copy", 1400);
+}));
+
+/* cursor: one blue dot, white over blue */
+const dot = $("#dot");
+addEventListener("pointermove", e=>{
+  if(e.pointerType!=="mouse" || !fine.matches) return;
+  dot.classList.add("on");
+  dot.style.transform = `translate(${e.clientX}px,${e.clientY}px)`;
+  dot.classList.toggle("inv", !!e.target.closest(".slate"));
+  if(preview.classList.contains("show")) placePreview(e.clientX, e.clientY);
+}, {passive:true});
+document.documentElement.addEventListener("mouseleave", ()=>dot.classList.remove("on"));
+/* panels sit in the browser's top layer, so the dot moves in with them */
+document.querySelectorAll("dialog").forEach(d=>{
+  new MutationObserver(()=>{ const open = document.querySelector("dialog[open]"); (open || document.body).appendChild(dot); })
+    .observe(d, {attributes:true, attributeFilter:["open"]});
+});
+
+/* phones: images settle and drift as you scroll */
+(function(){
+  if(reduce) return;
+  const thumbs = [...list.querySelectorAll(".mthumb")];
+  let ticking = false;
+  function frame(){
+    ticking = false;
+    if(!phone.matches){ thumbs.forEach(t=>{ t.style.transform=""; t.style.removeProperty("--iy"); }); return; }
+    const vh = innerHeight;
+    thumbs.forEach(t=>{
+      const r = t.getBoundingClientRect();
+      const p = Math.max(-1, Math.min(1, (r.top + r.height/2 - vh*.5) / vh));
+      t.style.transform = `scale(${(1 - Math.abs(p)*.07).toFixed(4)})`;
+      t.style.setProperty("--iy", `${(p*-14).toFixed(1)}px`);
+    });
+  }
+  const req = ()=>{ if(!ticking){ ticking = true; requestAnimationFrame(frame); } };
+  addEventListener("scroll", req, {passive:true}); addEventListener("resize", req); phone.addEventListener("change", req); req();
+})();
+</script>
+</body>
+</html>
