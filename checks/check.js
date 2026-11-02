@@ -12,7 +12,7 @@ const OUT = process.env.OUT || '/tmp';
   const t0 = Date.now(); await d.goto(BASE + '/', {waitUntil:'load'}); log(`desktop load ${Date.now()-t0}ms`);
   await d.waitForTimeout(500);
   log('font loaded: ' + await d.evaluate(()=>document.fonts.check('700 20px "Space Mono"')));
-  await d.hover('.row[data-id="velvet"]'); await d.waitForTimeout(250);
+  await d.hover('.row[data-id="figma"]'); await d.waitForTimeout(250);
   log('hover sets stage: ' + await d.$eval('.layer.on', e=>e.dataset.id));
   await d.click('button[data-open="infoPanel"]'); await d.waitForTimeout(500);
   log('info open: ' + await d.$eval('#infoPanel', e=>e.open)); await d.screenshot({path:OUT + '/chk-desk-info.png'});
@@ -41,8 +41,11 @@ const OUT = process.env.OUT || '/tmp';
   const q = await b.newPage({viewport:{width:390,height:844}, isMobile:true}); watch(q,'privacy');
   const res = await q.goto(BASE + '/privacy'); log('privacy status ' + res.status());
   await q.screenshot({path:OUT + '/chk-privacy.png', fullPage:true});
-  for (const f of ['/robots.txt','/sitemap.xml','/og.png','/favicon.svg','/apple-touch-icon.png','/assets/headshot.jpg','/assets/poster-velvet.jpg','/assets/poster-zalando.jpg','/assets/poster-figma.jpg']) {
+  // every image the site references (posters, phone covers, headshot) plus the fixed files
+  const refs = await d.evaluate(()=>[...new Set([...document.querySelectorAll('img[src],source[srcset]')].map(e=>new URL(e.getAttribute('src')||e.getAttribute('srcset'), location.href).pathname))]);
+  for (const f of ['/robots.txt','/sitemap.xml','/og.png','/favicon.svg','/apple-touch-icon.png', ...refs]) {
     const r = await q.request.get(BASE + f); if (r.status() !== 200) problems.push(`${f} -> ${r.status()}`); }
+  log(`checked ${refs.length} images`);
   log('PROBLEMS: ' + (problems.length ? '\n - ' + problems.join('\n - ') : 'none'));
   await b.close();
 })();
