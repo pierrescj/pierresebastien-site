@@ -67,6 +67,15 @@ const OUT = process.env.OUT || '/tmp';
   await p.tap('#infoPanel .x'); await p.waitForTimeout(400);
   await p.evaluate(()=>scrollTo(0, document.body.scrollHeight)); await p.waitForTimeout(400);
   log('footer visible at end: ' + await p.evaluate(()=>{const r=document.querySelector('.foot').getBoundingClientRect(); return r.top < innerHeight && r.bottom > 0;}));
+  // weak connection on an iPhone: the font never arrives (Safari keeps fonts.ready pending) and there is no resize at load
+  const slow = await page({viewport:{width:390,height:844}, isMobile:true, hasTouch:true}); watch(slow,'slow phone');
+  await slow.route('**/space-mono-700.woff', ()=>{});
+  await slow.addInitScript(()=>{ const add = window.addEventListener.bind(window); window.addEventListener = (t, ...a) => t === 'resize' ? undefined : add(t, ...a);
+    const never = new Promise(()=>{}); Object.defineProperty(FontFaceSet.prototype, 'ready', {get(){ return never; }, configurable:true}); });
+  await slow.goto(BASE + '/', {waitUntil:'domcontentloaded'}); await slow.waitForTimeout(1200);
+  const sh = await slow.$$eval('.acc-item', es=>es.map(e=>Math.round(e.getBoundingClientRect().height)));
+  log('slow connection accordion: ' + sh.join(' ')); if (Math.max(...sh) < 200) problems.push('accordion not set up on a slow connection');
+  await slow.close();
   // privacy
   const q = await page({viewport:{width:390,height:844}, isMobile:true}); watch(q,'privacy');
   const res = await q.goto(BASE + '/privacy'); log('privacy status ' + res.status());
