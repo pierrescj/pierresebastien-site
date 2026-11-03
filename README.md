@@ -19,12 +19,17 @@ Add an entry to `WORKS` in `index.html`:
 - Each cover also gets a lighter `.avif` copy beside it with the same name, which browsers use when they can:
   `python3 -c "from PIL import Image; Image.open('assets/NAME.jpg').save('assets/NAME.avif', 'AVIF', quality=70)"`
 - `youtube`: a YouTube link for the full film (plays in privacy-enhanced mode)
-- `src`: a short video file in `assets/` instead of YouTube (keep it small, see below)
+- `loop`: the preview, e.g. `"assets/loops/velvet"`, which needs two files beside each other:
+  `velvet.avif` (1280x720, desktop) and `velvet-tall.avif` (576x720, phones)
 
-## Video files
+## Preview loops
 
-Keep full-length films on YouTube or Vimeo. Only short, silent, compressed clips (H.264 MP4, around 720p, ideally under 5 MB)
-belong in this repo: GitHub refuses files over 100 MB, and every visitor's download counts against Vercel's bandwidth.
+Loops are 3-second animated AVIF images (no sound, no video player), so they show instantly and play on every phone,
+including in Low Power Mode. `checks/loops.py` builds them from the source films: set each clip's file, start time and
+crop in its list, then run `python3 checks/loops.py velvet` (or with no name for all). Each pair comes to roughly
+100 to 500 KB. Bump `LOOPS` in `index.html` after replacing a loop so browsers fetch the new one.
+
+Full-length films stay on YouTube: GitHub refuses files over 100 MB, and every download counts against Vercel's bandwidth.
 
 ## Health check
 

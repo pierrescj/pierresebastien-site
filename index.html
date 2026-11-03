@@ -85,9 +85,10 @@ button,a{-webkit-tap-highlight-color:transparent}
 .layer.on{opacity:1}
 .layer picture{display:contents}
 .layer{container-type:inline-size}
-.layer video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 300ms var(--ease)}
-.layer video.live{opacity:1}
 .layer img{width:100%;height:100%;object-fit:cover;transform:translate(var(--px),var(--py)) scale(1.05);transition:transform 160ms linear}
+/* a loop dissolves in over its cover, and back out when it's put away */
+.loop{position:absolute;inset:0;opacity:0;transition:opacity 250ms var(--ease),transform 160ms linear}
+.loop.live{opacity:1;transition:opacity 450ms cubic-bezier(.4,0,.2,1),transform 160ms linear}
 .slate{width:100%;height:100%;background:var(--blue);color:var(--paper);display:grid;place-content:center;justify-items:center;gap:12px;text-align:center;padding:24px}
 .slate .big{font-size:clamp(30px,7cqw,100px);line-height:1}
 .slate .caps{color:var(--neon)}
@@ -114,7 +115,7 @@ button,a{-webkit-tap-highlight-color:transparent}
 .thumb{position:relative;display:block;aspect-ratio:16/9;border-radius:8px;overflow:hidden;background:var(--blue)}
 .thumb picture{display:contents}
 .thumb,.screen{container-type:inline-size}
-.soonmark{position:absolute;inset:0;z-index:1;display:grid;place-content:center;text-align:center;font-family:var(--pixel);font-weight:700;letter-spacing:-.01em;line-height:.95;font-size:clamp(11px,15cqw,150px);text-transform:uppercase;color:var(--paper);background:rgba(8,10,40,.30);pointer-events:none}
+.soonmark{position:absolute;inset:0;z-index:1;display:grid;place-content:center;text-align:center;white-space:nowrap;font-family:var(--pixel);font-weight:700;letter-spacing:-.01em;line-height:.95;font-size:clamp(9px,11cqw,120px);text-transform:uppercase;color:var(--paper);background:rgba(8,10,40,.30);pointer-events:none}
 .thumb img{width:100%;height:100%;object-fit:cover;transition:transform 240ms var(--ease)}
 .row:hover .thumb img{transform:scale(1.08)}
 .thumb .slate{padding:4px}
@@ -158,7 +159,7 @@ html.modal-open{overflow:hidden;scroll-snap-type:none}   /* the page holds still
 .grab{display:none}
 .screen-wrap{container-type:size;min-height:0;display:grid;place-items:center}
 .screen{position:relative;width:min(100cqw, calc(100cqh * 16 / 9));aspect-ratio:16/9;border-radius:var(--r);overflow:hidden;background:var(--blue)}
-.screen img,.screen video,.screen iframe{width:100%;height:100%;object-fit:cover;border:0;display:block}
+.screen img,.screen iframe{width:100%;height:100%;object-fit:cover;border:0;display:block}
 .panel-foot{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;padding-top:14px;border-top:1px solid var(--blue)}
 .facts{display:flex;flex-wrap:wrap;gap:12px 32px;margin:0}
 .facts div{display:flex;flex-direction:column;gap:4px}
@@ -264,14 +265,11 @@ dialog[open] .waver .arm{animation:wave 1.1s var(--ease) .35s 2}
   /* the picture is always the open panel's height and simply stays centred: no animation, so it can never fall out of step */
   .acc-item .pic{position:absolute;left:0;right:0;top:50%;height:var(--acc-open,60svh);transform:translate3d(0,-50%,0)}
   .acc-item .pic picture{display:contents}
-  .acc-item .pic img,.acc-item .pic video,.acc-item .pic .slate{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .acc-item .pic img,.acc-item .pic .slate{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
   .acc-item .pic .slate .big{font-size:clamp(34px,11vw,52px)}
-  .acc-item .pic video{opacity:0;transition:opacity 300ms var(--ease)}
-  .acc-item .pic video.live{opacity:1;transition:opacity 650ms cubic-bezier(.4,0,.2,1)}   /* the cover dissolves into the loop */
-  .acc-item[data-id="birthday"] .pic video{transform:scale(1.22);transform-origin:50% 20%}   /* keeps the commercial's burned-in subtitles below the title */
   .acc-item:focus{outline:none}
   @media (hover:hover){ .acc-item:focus-visible{box-shadow:inset 0 0 0 2px var(--neon)} }
-  .acc-item .soonmark{font-size:clamp(28px,12vw,64px)}
+  .acc-item .soonmark{font-size:clamp(22px,10vw,46px)}
   .acc-item .ov,.acc-item .fold{position:absolute;inset:0;pointer-events:none}
   .acc-item .ov,.acc-item .acc-mark{opacity:0}          /* starting state until the accordion is measured */
   .acc-item .tint{position:absolute;inset:0;background:rgba(5,8,30,.42)}
@@ -407,20 +405,20 @@ dialog[open] .waver .arm{animation:wave 1.1s var(--ease) .35s 2}
    kind, client, artist, production: shown when someone opens the piece
    poster:       wide cover in assets/ for desktop (leave empty for a blue title card); put a same-named .avif beside it
    posterTall:   optional 4:5 cover for phones (also with an .avif beside it)
-   loop:         a 4-second silent clip in assets/loops/ that plays in the preview
+   loop:         a short animated preview in assets/loops/: NAME.avif (wide, desktop) and NAME-tall.avif (4:5, phones)
    youtube:      a YouTube link (unlisted is fine); the film plays right in the viewer
    soon:         true for work that isn't out yet */
 const WORKS = [
   {id:"engages",  title:"Les Engagé.es",          role:"Director",        kind:"Documentary", client:"Têtu x Mastercard", production:"THEM Studio", tc:"",
    poster:"assets/poster-engages.jpg?v=2",  posterTall:"assets/poster-engages-tall.jpg?v=2",  soon:true, youtube:""},
   {id:"velvet",   title:"Velvet Skin",            role:"DOP + Editor",    kind:"Music video", artist:"Josh Caffé", tc:"1:20",
-   poster:"assets/poster-velvet.jpg?v=2",   posterTall:"assets/poster-velvet-tall.jpg?v=2",   loop:"assets/loops/velvet.mp4?v=5",   youtube:"https://youtu.be/cmdLcrM75tc"},
+   poster:"assets/poster-velvet.jpg?v=2",   posterTall:"assets/poster-velvet-tall.jpg?v=2",   loop:"assets/loops/velvet",   youtube:"https://youtu.be/cmdLcrM75tc"},
   {id:"figma",    title:"Figma Artist Spotlight", role:"Videographer",    kind:"Brand film",  client:"Figma", tc:"0:33",
-   poster:"assets/poster-figma.jpg?v=3",    posterTall:"assets/poster-figma-tall.jpg?v=3",    loop:"assets/loops/figma.mp4?v=5",    youtube:"https://youtu.be/FkKbDcSUh-0"},
+   poster:"assets/poster-figma.jpg?v=3",    posterTall:"assets/poster-figma-tall.jpg?v=3",    loop:"assets/loops/figma",    youtube:"https://youtu.be/FkKbDcSUh-0"},
   {id:"demo",     title:"Demo Reel 2026",         role:"Camera Operator", kind:"Showreel", tc:"1:58",
-   poster:"", slate:"Demo Reel 2026",                                                         loop:"assets/loops/demo.mp4?v=5",     youtube:"https://youtu.be/0wun5-agdbI"},
+   poster:"", slate:"Demo Reel 2026",                                                         loop:"assets/loops/demo",     youtube:"https://youtu.be/0wun5-agdbI"},
   {id:"birthday", title:"The Birthday Draw",      role:"Camera Operator", kind:"Commercial",  client:"ITV & Global", tc:"1:14",
-   poster:"assets/poster-birthday.jpg?v=2", posterTall:"assets/poster-birthday-tall.jpg?v=2", loop:"assets/loops/birthday.mp4?v=5", youtube:"https://youtu.be/__BZ3YQwGks"}
+   poster:"assets/poster-birthday.jpg?v=2", posterTall:"assets/poster-birthday-tall.jpg?v=2", loop:"assets/loops/birthday", youtube:"https://youtu.be/__BZ3YQwGks"}
 ];
 WORKS.forEach((w,i)=>{ w.num = String(i + 1).padStart(2, "0"); w.line = w.role || w.kind; });
 
@@ -429,12 +427,29 @@ const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const fine = matchMedia("(pointer:fine)");
 const phone = matchMedia("(max-width:719px)");
 const slate = (w, small) => `<div class="slate"><div class="big">${w.slate}</div>${small ? "" : `<div class="caps">${w.line}</div>`}</div>`;
-const soonMark = w => w.soon ? `<span class="soonmark" aria-hidden="true">Coming<br>soon</span>` : "";
+const soonMark = w => w.soon ? `<span class="soonmark" aria-hidden="true">Coming soon</span>` : "";
 /* covers: a light AVIF next to every JPEG, which the browser picks when it can (the JPEG is the fallback) */
 const avif = u => u.replace(/\.jpg(?=\?|$)/, ".avif");
 const sources = (u, m = "") => `<source${m} type="image/avif" srcset="${avif(u)}"><source${m} srcset="${u}">`;
 const media = (w, small) => (!w.poster ? slate(w, small)
   : `<picture>${w.posterTall ? sources(w.posterTall, ` media="(max-width:719px)"`) : ""}${sources(w.poster)}<img src="${w.poster}" alt="" loading="lazy" decoding="async"></picture>`) + soonMark(w);
+/* preview loops are animated images laid over the cover. A loop only gets its file while it is the one on show,
+   fades in once its first frame is ready, and lets go of the file when it's put away, so hidden loops cost nothing */
+const LOOPS = "?v=6";
+const loopImg = (w, tall) => w.loop ? `<img class="loop" alt="" decoding="async" data-src="${w.loop}${tall ? "-tall" : ""}.avif${LOOPS}">` : "";
+const prefetch = img => { if(img && !img.pre){ img.pre = new Image(); img.pre.src = img.dataset.src; } };
+function showLoop(img, on){
+  if(!img || img.want === on) return;
+  img.want = on;
+  clearTimeout(img.off);
+  if(on){
+    if(!img.getAttribute("src")) img.src = img.dataset.src;
+    img.decode().then(()=>{ if(img.want) img.classList.add("live"); }, ()=>{});
+  } else {
+    img.classList.remove("live");
+    img.off = setTimeout(()=>img.removeAttribute("src"), 500);
+  }
+}
 let active = WORKS[0].id;
 
 /* letters that react to the cursor: near it they stretch up and lean away, then settle back */
@@ -489,8 +504,7 @@ const layers = $("#layers");
 WORKS.forEach(w=>{
   const d = document.createElement("div");
   d.className = "layer"; d.dataset.id = w.id;
-  d.innerHTML = media(w) + (w.loop ? `<video class="loop" src="${w.loop}" muted loop playsinline preload="none" disablepictureinpicture aria-hidden="true"></video>` : "");
-  const v = d.querySelector("video"); if(v) v.addEventListener("playing", ()=>v.classList.add("live"), {once:true});
+  d.innerHTML = media(w) + loopImg(w);
   layers.appendChild(d);
 });
 
@@ -517,11 +531,9 @@ function setActive(id){
   document.querySelectorAll(".row").forEach(r=>r.classList.toggle("on", r.dataset.id===id));
   $("#stageCap").innerHTML = `<span>${w.num}</span><span>${w.title}</span><span>${w.line}</span>${w.tc ? `<span class="tc">${w.tc}</span>` : ""}`;
   $("#stage").setAttribute("aria-label", `${w.soon ? "Details for" : "Play"} ${w.title}, ${w.line}`);
-  /* the preview loop plays only for the piece being shown */
-  document.querySelectorAll(".layer video").forEach(v=>{
-    if(v.closest(".layer").dataset.id === id && !reduce){ v.preload = "auto"; v.play().catch(()=>{}); }
-    else v.pause();
-  });
+  /* the preview loop plays only for the piece being shown (on desktop; phones have their own) */
+  const play = !reduce && !phone.matches && !document.documentElement.classList.contains("modal-open");
+  document.querySelectorAll(".layer .loop").forEach(l=>showLoop(l, play && l.closest(".layer").dataset.id === id));
   $("#stage").classList.toggle("soon", !!w.soon);
 }
 setActive(WORKS[0].id);
@@ -562,7 +574,6 @@ document.querySelectorAll("dialog").forEach(d=>{
   x.addEventListener("click", ()=>{ x.classList.add("hit"); setTimeout(()=>d.close(), reduce ? 0 : 150); });
   d.addEventListener("close", ()=>{
     if(d.id === "viewer") viewing++;
-    const v = d.querySelector("video"); if(v) v.pause();
     const f = d.querySelector("iframe"); if(f) f.remove();
     panel.style.transform = ""; panel.style.opacity = "";
     x.classList.remove("hit");
@@ -573,7 +584,7 @@ document.querySelectorAll("dialog").forEach(d=>{
   let y0 = null, x0 = 0, dy = 0, t0 = 0, dragging = false;
   panel.addEventListener("touchstart", e=>{
     y0 = null;
-    if(e.target.closest("iframe,video")) return;
+    if(e.target.closest("iframe")) return;
     if(scroller && scroller.contains(e.target) && scroller.scrollTop > 0) return;
     y0 = e.touches[0].clientY; x0 = e.touches[0].clientX; dy = 0; dragging = false;
   }, {passive:true});
@@ -643,7 +654,9 @@ const panelWatch = new MutationObserver(()=>{
   const open = document.querySelector("dialog[open]");
   (open || document.body).appendChild(dot);
   document.documentElement.classList.toggle("modal-open", !!open);
+  setActive(active);   /* the desktop preview rests while a panel is open */
 });
+phone.addEventListener("change", ()=>setActive(active));
 document.querySelectorAll("dialog").forEach(d=>panelWatch.observe(d, {attributes:true, attributeFilter:["open"]}));
 
 /* phones: the name shrinks into a one-line bar as you scroll, the header's rule becomes the bar's edge,
@@ -769,18 +782,17 @@ document.querySelectorAll("dialog").forEach(d=>panelWatch.observe(d, {attributes
       const el = document.createElement("button");
       el.type = "button"; el.className = "acc-item"; el.dataset.i = i; el.dataset.id = w.id; if(w.soon) el.dataset.soon = "";
       el.setAttribute("aria-label", `${w.title}, ${w.line}${w.soon ? ", coming soon" : ""}`);
-      el.innerHTML = `<span class="pic">${media(w, true)}${w.loop ? `<video src="${w.loop}" muted loop playsinline preload="none" disablepictureinpicture aria-hidden="true"></video>` : ""}</span>`
+      el.innerHTML = `<span class="pic">${media(w, true)}${loopImg(w, true)}</span>`
         + `<span class="fold"><span class="tint"></span><span class="sliver"><span class="n">${w.num}</span><span>${w.title}</span></span></span>`
         + `<span class="ov"><span class="shade"></span><span class="cap"><span><span class="t">${w.title}</span><span class="r caps">${w.line}</span></span><span class="p"></span></span></span>`;
       stage.appendChild(el);
-      const video = el.querySelector("video"), mark = el.querySelector(".soonmark, .slate .big");
+      const mark = el.querySelector(".soonmark, .slate .big");
       if(mark) mark.classList.add("acc-mark");
-      if(video) video.addEventListener("pause", ()=>video.classList.remove("live"));
       el.addEventListener("click", ()=>{
         if(Math.abs(progress() - i) < .5) openViewer(w);
         else scrollTo({top: origin + i * STEP, behavior: reduce ? "auto" : "smooth"});
       });
-      return {i, el, video, warmed: false, parts: {ov: el.querySelector(".ov"), fold: el.querySelector(".fold"), mark}};
+      return {i, el, loop: el.querySelector(".loop"), parts: {ov: el.querySelector(".ov"), fold: el.querySelector(".fold"), mark}};
     });
     const marks = items.map(()=>wrap.appendChild(Object.assign(document.createElement("span"), {className: "acc-snap"})));
     let H = 0, OPEN = 0, STEP = 1, origin = 0, ready = false, ticking = false, size = "", scrolled = false;
@@ -842,40 +854,26 @@ document.querySelectorAll("dialog").forEach(d=>panelWatch.observe(d, {attributes
       });
       const away = docEl.classList.contains("modal-open");   /* a panel is open over the page: nothing plays behind it */
       items.forEach(it=>{
-        if(!it.video || reduce) return;
+        if(!it.loop || reduce) return;
         const d = away ? 9 : Math.abs(p - it.i);
-        if(d < 1.2 && !it.warmed && scrolled){ it.warmed = true; it.video.preload = "auto"; if(it.video.readyState === 0 && it.video.networkState !== 2) it.video.load(); }   /* fetch it a step early */
-        if(d < .4){ if(it.video.paused){ clearTimeout(settleTimer); settleTimer = setTimeout(settle, 90); } }   /* start once the scroll has come to rest */
-        else { clearTimeout(it.wait); if(!it.video.paused) it.video.pause(); }
+        if(d < 1.2 && scrolled) prefetch(it.loop);   /* fetch the next one a step early */
+        if(d >= .4) showLoop(it.loop, false);
+        else if(!it.loop.want){ clearTimeout(settleTimer); settleTimer = setTimeout(settle, 80); }   /* show it once the scroll comes to rest */
       });
     }
-    /* a preview starts only when the page has stopped moving, so the phone isn't decoding video mid-glide */
+    /* a loop appears once the page has stopped moving, so nothing new is drawn mid-glide */
     let settleTimer = 0;
     function settle(){
       settleTimer = 0;
       if(!on() || reduce || docEl.classList.contains("modal-open")) return;
       const p = progress();
-      items.forEach(it=>{ if(it.video && Math.abs(p - it.i) < .4 && it.video.paused) start(it); });
+      items.forEach(it=>showLoop(it.loop, Math.abs(p - it.i) < .4));
     }
-    /* the open film shows its cover first; a beat later the loop starts from its first frame and dissolves in over the cover */
-    function start(it){
-      const v = it.video;
-      clearTimeout(it.wait);
-      it.wait = setTimeout(()=>{
-        if(Math.abs(progress() - it.i) >= .4) return;
-        try{ v.currentTime = 0; }catch(e){}
-        v.play().then(()=>{
-          /* reveal once the first real frame is in, plus a short beat for the decoder to find its rhythm.
-             (Safari stops reporting frames of a video it isn't showing, so this never waits on more than one,
-             and a safety timer makes sure the loop always appears.) */
-          let done = false;
-          const show = ()=>{ if(done || v.paused) return; done = true; v.classList.add("live"); };
-          if(v.requestVideoFrameCallback) v.requestVideoFrameCallback(()=>setTimeout(show, 140));
-          setTimeout(show, 450);
-        }).catch(()=>{});
-      }, 120);
-    }
-    new MutationObserver(()=>{ if(ready && on()){ update(); if(!docEl.classList.contains("modal-open")) settle(); } }).observe(docEl, {attributes:true, attributeFilter:["class"]});
+    /* a panel opening over the page, or the switch to the grid, puts the loops away; coming back brings the open one back */
+    new MutationObserver(()=>{
+      if(!ready) return;
+      if(on()){ update(); settle(); } else items.forEach(it=>showLoop(it.loop, false));
+    }).observe(docEl, {attributes:true, attributeFilter:["class"]});
     addEventListener("scrollend", ()=>{ if(settleTimer){ clearTimeout(settleTimer); settle(); } });
     addEventListener("scroll", ()=>{ scrolled = true; if(!ticking && on()){ ticking = true; requestAnimationFrame(()=>ready ? update() : layout()); } }, {passive:true});
     /* re-measure only when the layout really changes, not when a phone's toolbar slides in and out */

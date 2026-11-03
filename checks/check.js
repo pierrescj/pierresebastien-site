@@ -15,7 +15,7 @@ const OUT = process.env.OUT || '/tmp';
     p.on('requestfailed', r => {
       const why = (r.failure() || {}).errorText || '';
       if (/youtube|ytimg|google|gstatic|doubleclick/.test(r.url())) return;            // the sandbox can't reach YouTube
-      if (/\.mp4/.test(r.url()) && /ABORTED/.test(why)) return;                        // browsers routinely cancel video range requests
+      if (/ABORTED/.test(why) && /\.avif/.test(r.url())) return;                       // a loop put away mid-download is cancelled on purpose
       problems.push(`${tag} failed request: ${r.url()} ${why}`); }); };
   // desktop
   const d = await page({viewport:{width:1440,height:900}}); watch(d,'desktop');
