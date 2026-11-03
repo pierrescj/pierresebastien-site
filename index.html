@@ -143,7 +143,7 @@ dialog[open] .panel{animation:rise 220ms var(--ease)}
   padding:max(var(--pad), env(safe-area-inset-top)) var(--pad) max(var(--pad), env(safe-area-inset-bottom));
   touch-action:pan-y;will-change:transform;overscroll-behavior:contain;
 }
-html.modal-open,html.modal-open body{overflow:hidden}
+html.modal-open{overflow:hidden;scroll-snap-type:none}   /* the page holds still behind an open panel (only html: body is 100% tall, so locking it too would jump the page to the top) */
 .panel.dragging{transition:none}
 .panel.settle{transition:transform 260ms var(--ease), opacity 260ms var(--ease)}
 .panel-top{display:flex;align-items:center;gap:16px;padding-bottom:14px;border-bottom:1px solid var(--blue)}
@@ -234,7 +234,8 @@ dialog[open] .waver .arm{animation:wave 1.1s var(--ease) .35s 2}
     position:absolute;left:var(--pad);bottom:12px;font-size:18px;line-height:1;white-space:nowrap;
     color:var(--blue);pointer-events:auto;text-align:left;padding:0;
   }
-  .nb-name .nw{display:inline-block;transform-origin:0 0;will-change:transform}
+  .nb-name .nw{display:block;width:fit-content;transform-origin:0 0;will-change:transform}   /* drawn at full size and only ever shrunk, so it stays sharp */
+  .nb-name.one-line .nw{display:inline-block}
 
   .work{display:block}
   .stage-wrap{display:none}
@@ -551,6 +552,7 @@ document.querySelectorAll("dialog").forEach(d=>{
   const x = d.querySelector("[data-close]");
   x.addEventListener("click", ()=>{ x.classList.add("hit"); setTimeout(()=>d.close(), reduce ? 0 : 150); });
   d.addEventListener("close", ()=>{
+    if(d.id === "viewer") viewing++;
     const v = d.querySelector("video"); if(v) v.pause();
     const f = d.querySelector("iframe"); if(f) f.remove();
     panel.style.transform = ""; panel.style.opacity = "";
@@ -598,12 +600,15 @@ document.querySelectorAll("dialog").forEach(d=>{
   });
 });
 function ytId(url){ const m = String(url).match(/(?:youtu\.be\/|v=|embed\/|shorts\/)([\w-]{11})/); return m ? m[1] : ""; }
+let viewing = 0;
 function openViewer(w){
-  const id = ytId(w.youtube);
-  $("#screen").innerHTML = id
-    ? `<iframe src="https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0" title="${w.title}" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>`
-    : w.src ? `<video src="${w.src}" ${w.poster?`poster="${w.poster}"`:""} controls autoplay playsinline></video>`
-    : media(w);
+  const id = ytId(w.youtube), screen = $("#screen"), token = ++viewing;
+  /* the cover shows while the panel rises; the YouTube player (heavy) only loads once it has landed */
+  screen.innerHTML = w.src ? `<video src="${w.src}" ${w.poster?`poster="${w.poster}"`:""} controls autoplay playsinline></video>` : media(w);
+  if(id) setTimeout(()=>{
+    if(token !== viewing || !$("#viewer").open) return;
+    screen.innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0" title="${w.title}" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>`;
+  }, reduce ? 0 : 260);
   $("#vNum").textContent = w.num;
   $("#vTitle").textContent = w.title;
   const facts = [["Role", w.role], ["Artist", w.artist], ["Client", w.client], ["Production", w.production], ["Type", w.kind], ["Runtime", w.tc]];
@@ -641,7 +646,7 @@ document.querySelectorAll("dialog").forEach(d=>panelWatch.observe(d, {attributes
   const clamp = t => Math.min(1, Math.max(0, t));
   const native = !reduce && CSS.supports("animation-timeline: scroll()") && CSS.supports("animation-range: 0px 100px");
   const sheet = document.head.appendChild(document.createElement("style"));
-  let C = [], B = [], DIST = 180, Y1 = 60, den = 1, s1 = .5, delay = .5, LINE = 100, ticking = false;
+  let C = [], B = [], N = [], DIST = 180, Y1 = 60, den = 1, s1 = .5, delay = .5, LINE = 100, ticking = false;
   nb.addEventListener("click", ()=>scrollTo({top:0, behavior: reduce ? "auto" : "smooth"}));
 
   /* The name is one block. First it shrinks as a whole, its bottom edge riding exactly on the page as it scrolls,
@@ -654,14 +659,14 @@ document.querySelectorAll("dialog").forEach(d=>panelWatch.observe(d, {attributes
     const top0 = b0.y + (C[0].top - b0.y) * k, left0 = b0.x + (C[0].left - b0.x) * k;
     const q = Y1 >= DIST ? 1 : clamp((y - Y1) / (DIST - Y1));          /* 0..1 through the slide */
     return W.map((w,i)=>{
-      const b = B[i], c = C[i], sc = b.h * s / c.height;
+      const b = B[i], c = C[i], n = N[i], sc = b.h * s / c.height;
       let x = left0 + (b.x - b0.x) * s, yy = top0 + (b.y - b0.y) * s;
       if(i){
         const ex = smooth(clamp(q / .65)), ey = smooth(clamp((q - a) / (1 - a)));
         x += (c.left - x) * ex; yy += (c.top - yy) * ey - Math.sin(Math.PI * ey) * c.height * .35;
       }
       return {x, y: yy, w: c.width * sc, h: c.height * sc,
-              css: `translate3d(${(x - c.left).toFixed(2)}px,${(yy - c.top).toFixed(2)}px,0) scale(${sc.toFixed(4)})`};
+              css: `translate3d(${(x - n.left).toFixed(2)}px,${(yy - n.top).toFixed(2)}px,0) scale(${(c.height * sc / n.height).toFixed(4)})`};
     });
   }
   function clashes(a){
@@ -683,12 +688,19 @@ document.querySelectorAll("dialog").forEach(d=>panelWatch.observe(d, {attributes
     const lineY = top.getBoundingClientRect().bottom + scrollY - 1;
     rule.style.top = `${lineY}px`;
     LINE = Math.max(1, Math.round(lineY - (bar.offsetHeight - 1)));
+    /* where the words end up: one line, fitted to the bar */
+    nb.classList.add("one-line");
     nb.style.fontSize = "";
     const room = bar.clientWidth - nb.offsetLeft * 2;
     if(nb.scrollWidth > room) nb.style.fontSize = `${(parseFloat(getComputedStyle(nb).fontSize) * room / nb.scrollWidth * .97).toFixed(1)}px`;
     C = W.map(w=>w.getBoundingClientRect());
     B = [...nameEl.querySelectorAll(".w")].map(w=>{ const r = w.getBoundingClientRect(); return {x:r.left, y:r.top + scrollY, h:r.height}; });
-    if(B.length !== W.length) return;
+    if(B.length !== W.length){ nb.classList.remove("one-line"); return; }
+    /* what is actually drawn: the words at their full starting size, so the browser only ever scales them down */
+    const big = parseFloat(getComputedStyle(nb).fontSize) * Math.max(...B.map((b,i)=>b.h / C[i].height));
+    nb.classList.remove("one-line");
+    nb.style.fontSize = `${big.toFixed(2)}px`;
+    N = W.map(w=>w.getBoundingClientRect());
     /* shrink phase: the block's bottom follows the page */
     const last = B[B.length - 1], blockH = last.y + last.h - B[0].y;
     document.documentElement.style.setProperty("--tuck", `${Math.round(bar.offsetHeight + C[0].height + 6)}px`);
@@ -770,8 +782,8 @@ document.querySelectorAll("dialog").forEach(d=>panelWatch.observe(d, {attributes
     function layout(){
       if(!on()){ sheet.textContent = ""; return; }
       const TOP = bar.offsetHeight + 8, svh = probe.offsetHeight;
-      H = Math.round(svh - TOP - 18);
-      OPEN = H - (N - 1) * (SLICE + GAP);
+      OPEN = Math.round((svh - TOP - 18 - (N - 1) * (SLICE + GAP)) / 2) * 2;   /* even, so the centred picture sits on whole pixels */
+      H = OPEN + (N - 1) * (SLICE + GAP);
       STEP = Math.round(svh * .55);
       docEl.style.setProperty("--acc-top", `${TOP}px`);
       docEl.style.setProperty("--acc-h", `${H}px`);
@@ -779,11 +791,11 @@ document.querySelectorAll("dialog").forEach(d=>panelWatch.observe(d, {attributes
       docEl.style.scrollPaddingTop = `${TOP}px`;
       wrap.style.height = `${H + (N - 1) * STEP}px`;
       marks.forEach((m,i)=>m.style.top = `${i * STEP}px`);
-      origin = Math.round(wrap.getBoundingClientRect().top + scrollY - TOP);
+      origin = wrap.getBoundingClientRect().top + scrollY - TOP;   /* exactly where the snap points put the page */
       ready = true;
       if(native){
         /* keyframes at every point where a value changes direction, so the browser's straight lines between them are exact */
-        const end = origin + (N - 1) * STEP, range = `animation-timeline:scroll(root block);animation-range:${origin}px ${end}px`;
+        const end = origin + (N - 1) * STEP, range = `animation-timeline:scroll(root block);animation-range:${origin.toFixed(2)}px ${end.toFixed(2)}px`;
         let css = "";
         items.forEach(it=>{
           const pts = [...new Set([0, N - 1, ...[-1, -.625, -.375, 0, .375, .625, 1].map(d=>it.i + d)]
@@ -809,9 +821,10 @@ document.querySelectorAll("dialog").forEach(d=>panelWatch.observe(d, {attributes
         it.el.style.cssText = v.el;
         Object.entries(it.parts).forEach(([part,node])=>{ if(node) node.style.cssText = v[part]; });
       });
+      const away = docEl.classList.contains("modal-open");   /* a panel is open over the page: nothing plays behind it */
       items.forEach(it=>{
         if(!it.video || reduce) return;
-        const d = Math.abs(p - it.i);
+        const d = away ? 9 : Math.abs(p - it.i);
         if(d < 1.2 && !it.warmed){ it.warmed = true; it.video.preload = "auto"; if(it.video.readyState === 0 && it.video.networkState !== 2) it.video.load(); }   /* fetch it a step early */
         if(d < .4){ if(it.video.paused){ clearTimeout(settleTimer); settleTimer = setTimeout(settle, 90); } }   /* start once the scroll has come to rest */
         else { clearTimeout(it.wait); if(!it.video.paused) it.video.pause(); }
@@ -821,7 +834,7 @@ document.querySelectorAll("dialog").forEach(d=>panelWatch.observe(d, {attributes
     let settleTimer = 0;
     function settle(){
       settleTimer = 0;
-      if(!on() || reduce) return;
+      if(!on() || reduce || docEl.classList.contains("modal-open")) return;
       const p = progress();
       items.forEach(it=>{ if(it.video && Math.abs(p - it.i) < .4 && it.video.paused) start(it); });
     }
@@ -833,11 +846,14 @@ document.querySelectorAll("dialog").forEach(d=>panelWatch.observe(d, {attributes
         if(Math.abs(progress() - it.i) >= .4) return;
         try{ v.currentTime = 0; }catch(e){}
         v.play().then(()=>{
-          const show = ()=>{ if(!v.paused) v.classList.add("live"); };
-          if(v.requestVideoFrameCallback) v.requestVideoFrameCallback(show); else setTimeout(show, 80);   /* wait for a real frame */
+          /* reveal only once a few frames have actually been shown: a phone's decoder can stutter on the very first ones */
+          let n = 0;
+          const show = ()=>{ if(v.paused) return; if(++n < 4 && v.requestVideoFrameCallback) return v.requestVideoFrameCallback(show); v.classList.add("live"); };
+          if(v.requestVideoFrameCallback) v.requestVideoFrameCallback(show); else setTimeout(show, 160);
         }).catch(()=>{});
       }, 120);
     }
+    new MutationObserver(()=>{ if(ready && on()){ update(); if(!docEl.classList.contains("modal-open")) settle(); } }).observe(docEl, {attributes:true, attributeFilter:["class"]});
     addEventListener("scrollend", ()=>{ if(settleTimer){ clearTimeout(settleTimer); settle(); } });
     addEventListener("scroll", ()=>{ if(!ticking && on()){ ticking = true; requestAnimationFrame(()=>ready ? update() : layout()); } }, {passive:true});
     /* re-measure only when the layout really changes, not when a phone's toolbar slides in and out */
