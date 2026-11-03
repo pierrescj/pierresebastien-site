@@ -383,7 +383,7 @@ dialog[open] .waver .arm{animation:wave 1.1s var(--ease) .35s 2}
       <span class="t it">Info</span>
     </div>
     <div class="info">
-      <img src="assets/headshot.jpg?v=4" alt="Halftone portrait of Pierre-Sebastien Cabrejo-Jones" width="900" height="1187">
+      <img id="headshot" src="assets/headshot.jpg?v=4" alt="Halftone portrait of Pierre-Sebastien Cabrejo-Jones" width="900" height="1187" loading="lazy" decoding="async">
       <div>
         <div class="blurb">
           <p class="lead"><span class="react">Hi,</span><svg class="waver" viewBox="0 0 28 36" role="img" aria-label="a little person waving"><g fill="none" stroke="currentColor" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="6" r="3.4" fill="currentColor" stroke-width="2.4"/><path d="M12 13.5v10M12 23.5l-5 10M12 23.5l5 10M12 16l-6 6"/><path class="arm" d="M12 16l7-4l2-8"/></g></svg></p>
@@ -405,9 +405,9 @@ dialog[open] .waver .arm{animation:wave 1.1s var(--ease) .35s 2}
 /* ---------- Your work, in order. Edit this list to add, remove or reorder pieces. ----------
    title, role:  shown in the list (the film's title, then your role on it)
    kind, client, artist, production: shown when someone opens the piece
-   poster:       wide cover in assets/ for desktop (leave empty for a blue title card)
-   posterTall:   optional 4:5 cover for phones
-   loop:         a 3-second silent clip in assets/loops/ that plays in the desktop preview
+   poster:       wide cover in assets/ for desktop (leave empty for a blue title card); put a same-named .avif beside it
+   posterTall:   optional 4:5 cover for phones (also with an .avif beside it)
+   loop:         a 4-second silent clip in assets/loops/ that plays in the preview
    youtube:      a YouTube link (unlisted is fine); the film plays right in the viewer
    soon:         true for work that isn't out yet */
 const WORKS = [
@@ -430,9 +430,11 @@ const fine = matchMedia("(pointer:fine)");
 const phone = matchMedia("(max-width:719px)");
 const slate = (w, small) => `<div class="slate"><div class="big">${w.slate}</div>${small ? "" : `<div class="caps">${w.line}</div>`}</div>`;
 const soonMark = w => w.soon ? `<span class="soonmark" aria-hidden="true">Coming<br>soon</span>` : "";
+/* covers: a light AVIF next to every JPEG, which the browser picks when it can (the JPEG is the fallback) */
+const avif = u => u.replace(/\.jpg(?=\?|$)/, ".avif");
+const sources = (u, m = "") => `<source${m} type="image/avif" srcset="${avif(u)}"><source${m} srcset="${u}">`;
 const media = (w, small) => (!w.poster ? slate(w, small)
-  : w.posterTall ? `<picture><source media="(max-width:719px)" srcset="${w.posterTall}"><img src="${w.poster}" alt="" loading="lazy" decoding="async"></picture>`
-  : `<img src="${w.poster}" alt="" loading="lazy" decoding="async">`) + soonMark(w);
+  : `<picture>${w.posterTall ? sources(w.posterTall, ` media="(max-width:719px)"`) : ""}${sources(w.poster)}<img src="${w.poster}" alt="" loading="lazy" decoding="async"></picture>`) + soonMark(w);
 let active = WORKS[0].id;
 
 /* letters that react to the cursor: near it they stretch up and lean away, then settle back */
@@ -478,7 +480,8 @@ if(document.fonts) document.fonts.ready.then(()=>fitAll());
 
 /* London clock */
 const clock = $("#clock");
-const tick = ()=>{ clock.textContent = new Intl.DateTimeFormat("en-GB",{timeZone:"Europe/London",hour:"2-digit",minute:"2-digit"}).format(new Date()); };
+const londonTime = new Intl.DateTimeFormat("en-GB", {timeZone:"Europe/London", hour:"2-digit", minute:"2-digit"});
+const tick = ()=>{ clock.textContent = londonTime.format(new Date()); };
 tick(); setInterval(tick, 20000);
 
 /* stage layers */
@@ -545,6 +548,12 @@ stage.addEventListener("pointermove", e=>{
 });
 stage.addEventListener("pointerleave", ()=>{ stage.style.setProperty("--px","0px"); stage.style.setProperty("--py","0px"); });
 
+/* the Info portrait isn't needed for the first view: it loads once the page is idle, or the moment someone reaches for Info */
+const headshot = $("#headshot");
+const warmHeadshot = ()=>{ headshot.loading = "eager"; };
+addEventListener("load", ()=>(window.requestIdleCallback || setTimeout)(warmHeadshot, {timeout: 3000}));
+["pointerdown", "pointerenter", "focus"].forEach(t=>$('[data-open="infoPanel"]').addEventListener(t, warmHeadshot, {once: true}));
+
 /* panels: open, close with the X, Escape, or a swipe down */
 document.querySelectorAll("[data-open]").forEach(b=>{ b.setAttribute("aria-expanded","false"); b.addEventListener("click", ()=>{ const d = document.getElementById(b.dataset.open); b.setAttribute("aria-expanded","true"); d.showModal(); fitAll(d); }); });
 document.querySelectorAll("dialog").forEach(d=>{
@@ -604,7 +613,7 @@ let viewing = 0;
 function openViewer(w){
   const id = ytId(w.youtube), screen = $("#screen"), token = ++viewing;
   /* the cover shows while the panel rises; the YouTube player (heavy) only loads once it has landed */
-  screen.innerHTML = w.src ? `<video src="${w.src}" ${w.poster?`poster="${w.poster}"`:""} controls autoplay playsinline></video>` : media(w);
+  screen.innerHTML = media(w);
   if(id) setTimeout(()=>{
     if(token !== viewing || !$("#viewer").open) return;
     screen.innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0" title="${w.title}" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>`;
@@ -679,13 +688,18 @@ document.querySelectorAll("dialog").forEach(d=>panelWatch.observe(d, {attributes
     }
     return false;
   }
+  let measured = "";
   function measure(){
+    const t = top.getBoundingClientRect(), n0 = nameEl.getBoundingClientRect();
+    const key = `${phone.matches}|${innerWidth}|${(t.bottom + scrollY).toFixed(1)}|${n0.left.toFixed(1)},${(n0.top + scrollY).toFixed(1)},${n0.width.toFixed(1)},${n0.height.toFixed(1)}`;
+    if(key === measured) return;
+    measured = key;
     sheet.textContent = "";
     W.forEach(w=>w.style.transform = "");
     rule.style.transform = "";
     if(!phone.matches) return;
     /* the rule starts exactly where the header's bottom border sits, and travels until it meets the bar's bottom */
-    const lineY = top.getBoundingClientRect().bottom + scrollY - 1;
+    const lineY = t.bottom + scrollY - 1;
     rule.style.top = `${lineY}px`;
     LINE = Math.max(1, Math.round(lineY - (bar.offsetHeight - 1)));
     /* where the words end up: one line, fitted to the bar */
@@ -769,7 +783,7 @@ document.querySelectorAll("dialog").forEach(d=>panelWatch.observe(d, {attributes
       return {i, el, video, warmed: false, parts: {ov: el.querySelector(".ov"), fold: el.querySelector(".fold"), mark}};
     });
     const marks = items.map(()=>wrap.appendChild(Object.assign(document.createElement("span"), {className: "acc-snap"})));
-    let H = 0, OPEN = 0, STEP = 1, origin = 0, ready = false, ticking = false, size = "";
+    let H = 0, OPEN = 0, STEP = 1, origin = 0, ready = false, ticking = false, size = "", scrolled = false;
 
     const on = () => phone.matches && !docEl.classList.contains("grid-view");
     const progress = () => Math.min(N - 1, Math.max(0, (scrollY - origin) / STEP));
@@ -779,9 +793,14 @@ document.querySelectorAll("dialog").forEach(d=>panelWatch.observe(d, {attributes
       const fade = Math.max(0, k * 1.6 - .6).toFixed(3), fold = Math.max(0, 1 - k * 1.6).toFixed(3);
       return {el: `height:${h.toFixed(1)}px`, ov: `opacity:${fade}`, mark: `opacity:${fade}`, fold: `opacity:${fold}`};
     }
+    let laid = "";
     function layout(){
-      if(!on()){ sheet.textContent = ""; return; }
+      if(!on()){ sheet.textContent = ""; laid = ""; return; }
       const TOP = bar.offsetHeight + 8, svh = probe.offsetHeight;
+      const at = wrap.getBoundingClientRect().top + scrollY - TOP;   /* exactly where the snap points put the page */
+      const key = `${innerWidth}|${svh}|${TOP}|${at.toFixed(2)}`;
+      if(key === laid){ update(); return; }   /* nothing has moved: keep what's there */
+      laid = key;
       OPEN = Math.round((svh - TOP - 18 - (N - 1) * (SLICE + GAP)) / 2) * 2;   /* even, so the centred picture sits on whole pixels */
       H = OPEN + (N - 1) * (SLICE + GAP);
       STEP = Math.round(svh * .55);
@@ -791,7 +810,7 @@ document.querySelectorAll("dialog").forEach(d=>panelWatch.observe(d, {attributes
       docEl.style.scrollPaddingTop = `${TOP}px`;
       wrap.style.height = `${H + (N - 1) * STEP}px`;
       marks.forEach((m,i)=>m.style.top = `${i * STEP}px`);
-      origin = wrap.getBoundingClientRect().top + scrollY - TOP;   /* exactly where the snap points put the page */
+      origin = at;
       ready = true;
       if(native){
         /* keyframes at every point where a value changes direction, so the browser's straight lines between them are exact */
@@ -809,10 +828,10 @@ document.querySelectorAll("dialog").forEach(d=>panelWatch.observe(d, {attributes
         });
         sheet.textContent = css;
       }
-      update(true);
+      update();
     }
     /* per frame: the script fallback sizes, plus which film's preview plays (cheap, reads only) */
-    function update(force){
+    function update(){
       ticking = false;
       if(!on() || !ready) return;
       const p = progress();
@@ -825,7 +844,7 @@ document.querySelectorAll("dialog").forEach(d=>panelWatch.observe(d, {attributes
       items.forEach(it=>{
         if(!it.video || reduce) return;
         const d = away ? 9 : Math.abs(p - it.i);
-        if(d < 1.2 && !it.warmed){ it.warmed = true; it.video.preload = "auto"; if(it.video.readyState === 0 && it.video.networkState !== 2) it.video.load(); }   /* fetch it a step early */
+        if(d < 1.2 && !it.warmed && scrolled){ it.warmed = true; it.video.preload = "auto"; if(it.video.readyState === 0 && it.video.networkState !== 2) it.video.load(); }   /* fetch it a step early */
         if(d < .4){ if(it.video.paused){ clearTimeout(settleTimer); settleTimer = setTimeout(settle, 90); } }   /* start once the scroll has come to rest */
         else { clearTimeout(it.wait); if(!it.video.paused) it.video.pause(); }
       });
@@ -858,7 +877,7 @@ document.querySelectorAll("dialog").forEach(d=>panelWatch.observe(d, {attributes
     }
     new MutationObserver(()=>{ if(ready && on()){ update(); if(!docEl.classList.contains("modal-open")) settle(); } }).observe(docEl, {attributes:true, attributeFilter:["class"]});
     addEventListener("scrollend", ()=>{ if(settleTimer){ clearTimeout(settleTimer); settle(); } });
-    addEventListener("scroll", ()=>{ if(!ticking && on()){ ticking = true; requestAnimationFrame(()=>ready ? update() : layout()); } }, {passive:true});
+    addEventListener("scroll", ()=>{ scrolled = true; if(!ticking && on()){ ticking = true; requestAnimationFrame(()=>ready ? update() : layout()); } }, {passive:true});
     /* re-measure only when the layout really changes, not when a phone's toolbar slides in and out */
     addEventListener("resize", ()=>{ const k = `${innerWidth}x${probe.offsetHeight}`; if(k !== size){ size = k; requestAnimationFrame(layout); } });
     /* set up straight away; again once everything has loaded and once the font is in (on a slow connection that can take

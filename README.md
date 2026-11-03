@@ -15,7 +15,9 @@ Every change pushed to `main` goes live automatically on Vercel.
 
 Add an entry to `WORKS` in `index.html`:
 
-- `poster`: an image in `assets/` (portrait 4:5 looks best on phones; leave empty for a blue title card)
+- `poster`: a wide JPEG in `assets/` (leave empty for a blue title card); `posterTall`: an optional 4:5 JPEG for phones
+- Each cover also gets a lighter `.avif` copy beside it with the same name, which browsers use when they can:
+  `python3 -c "from PIL import Image; Image.open('assets/NAME.jpg').save('assets/NAME.avif', 'AVIF', quality=70)"`
 - `youtube`: a YouTube link for the full film (plays in privacy-enhanced mode)
 - `src`: a short video file in `assets/` instead of YouTube (keep it small, see below)
 
