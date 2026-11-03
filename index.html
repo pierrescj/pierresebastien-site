@@ -27,7 +27,7 @@
 @font-face{font-family:"Space Mono";font-style:normal;font-weight:700;font-display:swap;src:url("/assets/fonts/space-mono-700.woff") format("woff")}
 :root{
   /* Desktop: one screen. Name and links on top, a stage on the left that shows whatever you point at,
-     an index of work on the right. Phones: the name shrinks into a bar, the work is a zooming carousel or a grid.
+     an index of work on the right. Phones: the name shrinks into a bar, the work is a scroll-driven accordion or a grid.
      Warm grey ground, cobalt for everything, lime only where something is selected or pressed. */
   --paper:#E7E6E3;
   --paper-2:#DCDBD7;
@@ -190,7 +190,7 @@ dialog[open] .waver .arm{animation:wave 1.1s var(--ease) .35s 2}
 /* ---------- wide but short windows ---------- */
 @media (min-width:720px) and (max-height:600px){ .app{height:auto;min-height:100%} .stage-wrap{height:70vh} .list{overflow:visible} }
 
-/* ---------- phones: a zooming carousel ---------- */
+/* ---------- phones: the accordion ---------- */
 .namebar{display:none}
 .views{display:none}
 .acc{display:none}
@@ -220,34 +220,6 @@ dialog[open] .waver .arm{animation:wave 1.1s var(--ease) .35s 2}
 
   .work{display:block}
   .stage-wrap{display:none}
-  .list{overflow:visible;border-top:0}
-  .list li{border-bottom:0;height:78svh;display:flex;align-items:center;justify-content:center;scroll-snap-align:center;view-timeline-name:--card;view-timeline-axis:block}
-  .list li:last-child{margin-bottom:12svh}
-  .row{
-    display:flex;flex-direction:column;align-items:stretch;gap:14px;padding:0;width:min(100%, calc((78svh - 150px) * .8));
-    background:transparent !important;transform-origin:50% 50%;
-    transform:scale(.74);transition:transform 560ms var(--ease);
-    will-change:transform;backface-visibility:hidden;
-  }
-  .list li.is-center .row{transform:scale(1)}
-  .row .thumb{width:100%;aspect-ratio:4/5;border-radius:22px;transform:translateZ(0)}
-  .row .thumb img{transform:scale(1.14);transition:transform 900ms var(--ease);will-change:transform}
-  .list li.is-center .row .thumb img{transform:scale(1)}
-  /* where the browser can tie animation straight to scrolling, let it: no script in the loop */
-  @supports (animation-timeline: view()){
-    .row{transition:none;animation:card-zoom linear both;animation-timeline:--card;animation-range:cover 0% cover 100%}
-    .row .thumb img{transition:none;animation:img-zoom linear both;animation-timeline:--card;animation-range:cover 0% cover 100%}
-  }
-  .row .thumb .slate .big{font-size:clamp(34px,11vw,52px)}
-  .row .thumb::after{
-    content:"";position:absolute;right:14px;bottom:14px;width:52px;height:52px;border-radius:50%;
-    background:var(--neon) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M8.5 5.5v13l10.5-6.5z' fill='%231A2BE0'/%3E%3C/svg%3E") center/24px no-repeat;
-  }
-  .row[data-soon] .thumb::after{display:none}
-  .row .num,.row .rt{position:absolute;opacity:0;pointer-events:none}
-  .row .txt{gap:8px}
-  .row .t-title{font-size:28px}
-  .row.on .t-role{color:var(--muted)}
   .hint{display:none}
 
   /* the header lines fade as they slide up under the name */
@@ -255,55 +227,65 @@ dialog[open] .waver .arm{animation:wave 1.1s var(--ease) .35s 2}
     .top .roles,.top .nav,.top .clockline{animation:tuck linear both;animation-timeline:view(block var(--tuck, 80px) 0px);animation-range:exit 0% exit 100%}
   }
 
-  /* list or grid, the visitor's choice */
+  /* layout switch: the accordion (default) or a grid */
   .views{display:flex;justify-content:flex-end;gap:6px;padding:12px 0 0}
   .vbtn{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;color:var(--muted);transition:background 160ms var(--ease),color 160ms var(--ease),transform 200ms var(--spring)}
   .vbtn svg{width:15px;height:15px}
   .vbtn[aria-pressed="true"]{background:var(--blue);color:var(--paper)}
   .vbtn:active{background:var(--neon);color:var(--ink);transform:scale(.9)}
-  html.grid-view{scroll-snap-type:none}
-  .grid-view .list{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:26px 12px;padding:14px 0 calc(48px + env(safe-area-inset-bottom))}
-  .grid-view .list li,.grid-view .list li:last-child{height:auto;display:block;scroll-snap-align:none;margin:0}
-  .grid-view .list li:first-child{grid-column:1 / -1}
-  .grid-view .row,.grid-view .list li.is-center .row{width:100%;transform:none;animation:none;transition:none;gap:9px}
-  .grid-view .row .thumb{border-radius:16px}
-  .grid-view .row .thumb img,.grid-view .list li.is-center .row .thumb img{animation:none;transition:none;transform:none}
-  .grid-view .list li:first-child .thumb{aspect-ratio:16/10;border-radius:20px}
-  .grid-view .list li:first-child .thumb img{object-position:50% 70%}
-  .grid-view .row .txt{gap:5px}
-  .grid-view .row .t-title{font-size:16px;line-height:1.1}
-  .grid-view .list li:first-child .t-title{font-size:24px}
-  .grid-view .row .t-role{font-size:9.5px;letter-spacing:.12em}
-  .grid-view .row .thumb .slate .big{font-size:22px}
-  .grid-view .list li:first-child .thumb .slate .big{font-size:40px}
-  .grid-view .row .thumb::after{width:34px;height:34px;right:9px;bottom:9px;background-size:16px}
-  .grid-view .list li:first-child .thumb::after{width:46px;height:46px;right:12px;bottom:12px;background-size:20px}
 
-  .foot{display:flex;justify-content:space-between;gap:16px;padding:6px 0 calc(28px + env(safe-area-inset-bottom));font-size:9.5px;scroll-snap-align:end}
-  /* stack: a scroll-driven accordion. The films sit in one tall panel; as you scroll, the next one opens
-     and the others fold down to thin slices. Heights come from the scroll position, so it moves with your thumb. */
-  html.stack-view .list{display:none}
-  html.stack-view .acc{display:block;position:relative;margin-top:12px}
+  /* the accordion: one film open, the others folded into slices. Scrolling opens the next one.
+     Sizes are tied to the scroll position (by the browser where it can), so it follows your thumb exactly. */
+  html:not(.grid-view) .list{display:none}
+  html:not(.grid-view) .acc{display:block;position:relative;margin-top:12px}
   .acc-stage{position:sticky;top:var(--acc-top,64px);display:flex;flex-direction:column;gap:6px;height:var(--acc-h,70svh)}
   .acc-snap{position:absolute;left:0;width:1px;height:1px;scroll-snap-align:start;pointer-events:none}
-  .acc-item{position:relative;flex:none;height:44px;border-radius:18px;overflow:hidden;background:var(--blue);color:var(--paper);text-align:left;padding:0;width:100%;contain:layout paint}
+  .acc-item{position:relative;flex:none;height:44px;width:100%;padding:0;border-radius:18px;overflow:hidden;background:var(--blue);color:var(--paper);text-align:left;contain:layout paint}
   .acc-item .pic{position:absolute;left:0;right:0;top:0;height:var(--acc-open,60svh);will-change:transform}
-  .acc-item .tint{position:absolute;inset:0;background:rgba(5,8,30,.42);pointer-events:none}
-  .acc-item .pic img,.acc-item .pic video,.acc-item .pic .slate{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
   .acc-item .pic picture{display:contents}
+  .acc-item .pic img,.acc-item .pic video,.acc-item .pic .slate{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
   .acc-item .pic .slate .big{font-size:clamp(34px,11vw,52px)}
   .acc-item .pic video{opacity:0;transition:opacity 300ms var(--ease)}
   .acc-item .pic video.live{opacity:1}
+  .acc-item[data-id="birthday"] .pic video{transform:scale(1.22);transform-origin:50% 20%}   /* keeps the commercial's burned-in subtitles below the title */
+  .acc-item:focus{outline:none}
+  @media (hover:hover){ .acc-item:focus-visible{box-shadow:inset 0 0 0 2px var(--neon)} }
+  .acc-item .soonmark{font-size:clamp(28px,12vw,64px)}
+  .acc-item .tint{position:absolute;inset:0;background:rgba(5,8,30,.42);pointer-events:none}
   .acc-item .shade{position:absolute;left:0;right:0;bottom:0;height:60%;background:linear-gradient(transparent,rgba(5,8,30,.72));pointer-events:none}
   .acc-item .cap{position:absolute;left:16px;right:14px;bottom:14px;display:flex;justify-content:space-between;align-items:flex-end;gap:12px;pointer-events:none}
-  .acc-item .cap .t{font-family:var(--pixel);font-weight:700;letter-spacing:-.045em;font-size:clamp(22px,7vw,30px);line-height:1}
-  .acc-item .cap .r{margin-top:7px;color:rgba(231,230,227,.82)}
+  .acc-item .cap .t{display:block;font-family:var(--pixel);font-weight:700;letter-spacing:-.045em;font-size:clamp(22px,7vw,30px);line-height:1}
+  .acc-item .cap .r{display:block;margin-top:7px;color:rgba(231,230,227,.82)}
   .acc-item .cap .p{width:48px;height:48px;border-radius:50%;flex:none;background:var(--neon) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M8.5 5.5v13l10.5-6.5z' fill='%231A2BE0'/%3E%3C/svg%3E") center/22px no-repeat}
   .acc-item[data-soon] .cap .p{display:none}
   .acc-item .sliver{position:absolute;left:16px;right:16px;top:0;height:44px;display:flex;align-items:center;gap:12px;font-size:10px;letter-spacing:.14em;text-transform:uppercase;font-weight:500;pointer-events:none;text-shadow:0 1px 8px rgba(0,0,0,.45)}
   .acc-item .sliver .n{opacity:.7;font-variant-numeric:tabular-nums}
-  .acc-item .soonmark{font-size:clamp(28px,12vw,64px)}
 
+  /* the grid */
+  html.grid-view{scroll-snap-type:none}
+  .list{overflow:visible;border-top:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:26px 12px;padding:14px 0 calc(48px + env(safe-area-inset-bottom))}
+  .list li{border-bottom:0}
+  .list li:first-child{grid-column:1 / -1}
+  .row{display:flex;flex-direction:column;align-items:stretch;gap:9px;padding:0;width:100%;background:transparent !important}
+  .row .num,.row .rt{display:none}
+  .row .thumb{width:100%;aspect-ratio:4/5;border-radius:16px}
+  .row .thumb img,.row:hover .thumb img{transform:none;transition:none}
+  .row .thumb .slate .big{font-size:22px}
+  .row .thumb::after{
+    content:"";position:absolute;right:9px;bottom:9px;width:34px;height:34px;border-radius:50%;
+    background:var(--neon) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M8.5 5.5v13l10.5-6.5z' fill='%231A2BE0'/%3E%3C/svg%3E") center/16px no-repeat;
+  }
+  .row[data-soon] .thumb::after{display:none}
+  .row .txt{gap:5px}
+  .row .t-title{font-size:16px;line-height:1.1}
+  .row .t-role,.row.on .t-role{font-size:9.5px;letter-spacing:.12em;color:var(--muted)}
+  .list li:first-child .thumb{aspect-ratio:16/10;border-radius:20px}
+  .list li:first-child .thumb img{object-position:50% 70%}
+  .list li:first-child .t-title{font-size:24px}
+  .list li:first-child .thumb .slate .big{font-size:40px}
+  .list li:first-child .thumb::after{width:46px;height:46px;right:12px;bottom:12px;background-size:20px}
+
+  .foot{display:flex;justify-content:space-between;gap:16px;padding:6px 0 calc(28px + env(safe-area-inset-bottom));font-size:9.5px;scroll-snap-align:end}
   .grab{display:block;width:44px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 10px}
   .panel{grid-template-rows:auto auto minmax(0,1fr) auto}
   .info{grid-template-columns:1fr;align-content:start}
@@ -312,8 +294,6 @@ dialog[open] .waver .arm{animation:wave 1.1s var(--ease) .35s 2}
 }
 ::view-transition-group(*){animation-duration:420ms;animation-timing-function:cubic-bezier(.2,.8,.2,1)}
 @keyframes tuck{to{opacity:0}}
-@keyframes card-zoom{0%{transform:scale(.7)}50%{transform:scale(1)}100%{transform:scale(.7)}}
-@keyframes img-zoom{0%{transform:scale(1.26)}50%{transform:scale(1.02)}100%{transform:scale(1.26)}}
 @media (prefers-reduced-motion:reduce){ *,*::before,*::after{transition-duration:1ms !important;animation-duration:1ms !important} }
 </style>
 </head>
@@ -347,8 +327,7 @@ dialog[open] .waver .arm{animation:wave 1.1s var(--ease) .35s 2}
     </div>
     <section class="index" aria-label="Work">
       <div class="views" id="views" role="group" aria-label="Layout">
-        <button class="vbtn" type="button" data-view="list" aria-label="List view" aria-pressed="true"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="2" width="13" height="5.2" rx="1.6" fill="currentColor"/><rect x="1.5" y="8.8" width="13" height="5.2" rx="1.6" fill="currentColor"/></svg></button>
-        <button class="vbtn" type="button" data-view="stack" aria-label="Stack view" aria-pressed="false"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="1" width="13" height="2.2" rx="1.1" fill="currentColor"/><rect x="1.5" y="4.4" width="13" height="7.2" rx="1.8" fill="currentColor"/><rect x="1.5" y="12.8" width="13" height="2.2" rx="1.1" fill="currentColor"/></svg></button>
+        <button class="vbtn" type="button" data-view="accordion" aria-label="Accordion view" aria-pressed="true"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="1" width="13" height="2.2" rx="1.1" fill="currentColor"/><rect x="1.5" y="4.4" width="13" height="7.2" rx="1.8" fill="currentColor"/><rect x="1.5" y="12.8" width="13" height="2.2" rx="1.1" fill="currentColor"/></svg></button>
         <button class="vbtn" type="button" data-view="grid" aria-label="Grid view" aria-pressed="false"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="1.5" width="5.6" height="5.6" rx="1.4" fill="currentColor"/><rect x="8.9" y="1.5" width="5.6" height="5.6" rx="1.4" fill="currentColor"/><rect x="1.5" y="8.9" width="5.6" height="5.6" rx="1.4" fill="currentColor"/><rect x="8.9" y="8.9" width="5.6" height="5.6" rx="1.4" fill="currentColor"/></svg></button>
       </div>
       <ol class="list" id="list"></ol>
@@ -622,7 +601,7 @@ const panelWatch = new MutationObserver(()=>{
 document.querySelectorAll("dialog").forEach(d=>panelWatch.observe(d, {attributes:true, attributeFilter:["open"]}));
 
 /* phones: the name shrinks into a one-line bar as you scroll, the header's rule becomes the bar's edge,
-   tapping the name goes back to the top, and visitors can switch between the carousel and a grid */
+   tapping the name goes back to the top, and visitors can switch between the accordion and a grid */
 (function(){
   const bar = $("#namebar"), bg = $("#nbBg"), nb = $("#nbName"), top = $("#top"), rule = $("#nbLine");
   const W = [...nb.querySelectorAll(".nw")];
@@ -684,11 +663,8 @@ document.querySelectorAll("dialog").forEach(d=>panelWatch.observe(d, {attributes
     s1 = C[0].height / B[0].h;
     den = blockH - (C[0].top - B[0].y) / (1 - s1);
     Y1 = Math.max(20, (1 - s1) * den);
-    /* end of the slide: once the header has gone under the bar, and before the first card settles */
-    let d = top.getBoundingClientRect().bottom + scrollY - bar.offsetHeight;
-    if(!document.documentElement.classList.contains("grid-view") && !document.documentElement.classList.contains("stack-view")){
-      const li = $("#list li"); if(li){ const r = li.getBoundingClientRect(); d = Math.min(d, r.top + scrollY + r.height / 2 - (56 + innerHeight) / 2 - 8); }
-    }
+    /* end of the slide: once the header has gone under the bar */
+    const d = top.getBoundingClientRect().bottom + scrollY - bar.offsetHeight;
     DIST = Math.round(Math.max(Y1 + 60, Math.min(Y1 + 200, d)));
     delay = .3; while(delay < .9 && clashes(delay)) delay += .02;
     if(native){
@@ -721,98 +697,124 @@ document.querySelectorAll("dialog").forEach(d=>panelWatch.observe(d, {attributes
   (document.fonts ? document.fonts.ready : Promise.resolve()).then(()=>requestAnimationFrame(measure));
   measure();
 
-  /* stack view: the scroll-driven accordion */
+  /* the accordion. All films share one sticky panel. Scroll position p runs from 0 (first film open) to N-1 (last open);
+     each film's openness is k = 1 - |p - i|, so exactly one is open at a whole step and two share the space in between.
+     Where the browser supports scroll-linked animations, the sizes are handed to it as keyframes, so they move in lockstep
+     with the scroll; otherwise a light script applies the same numbers on each frame. */
+  const docEl = document.documentElement;
   const acc = (function(){
-    const docEl = document.documentElement, wrap = $("#acc"), stage = $("#accStage"), SL = 44, GAP = 6;
+    const wrap = $("#acc"), stage = $("#accStage"), N = WORKS.length, SLICE = 44, GAP = 6;
+    const probe = document.body.appendChild(Object.assign(document.createElement("div"), {style: "position:fixed;top:0;height:100svh;width:0;visibility:hidden;pointer-events:none"}));
+    const sheet = document.head.appendChild(document.createElement("style"));
     const items = WORKS.map((w,i)=>{
-      const b = document.createElement("button");
-      b.type = "button"; b.className = "acc-item"; b.dataset.id = w.id; if(w.soon) b.dataset.soon = "";
-      b.setAttribute("aria-label", `${w.title}, ${w.line}${w.soon ? ", coming soon" : ""}`);
-      b.innerHTML = `<span class="pic">${media(w, true)}${w.loop ? `<video src="${w.loop}" muted loop playsinline preload="none" disablepictureinpicture aria-hidden="true"></video>` : ""}</span>
-        <span class="tint"></span><span class="shade"></span>
-        <span class="sliver"><span class="n">${w.num}</span><span>${w.title}</span></span>
-        <span class="cap"><span><span class="t">${w.title}</span><span class="r caps" style="display:block">${w.line}</span></span><span class="p"></span></span>`;
-      stage.appendChild(b);
-      const v = b.querySelector("video"); if(v) v.addEventListener("playing", ()=>v.classList.add("live"), {once:true});
-      return {el:b, pic:b.querySelector(".pic"), shade:b.querySelector(".shade"), tint:b.querySelector(".tint"), cap:b.querySelector(".cap"), sliver:b.querySelector(".sliver"),
-              mark:b.querySelector(".soonmark, .slate .big"), video:v, idx:i, w};
+      const el = document.createElement("button");
+      el.type = "button"; el.className = "acc-item"; el.dataset.i = i; el.dataset.id = w.id; if(w.soon) el.dataset.soon = "";
+      el.setAttribute("aria-label", `${w.title}, ${w.line}${w.soon ? ", coming soon" : ""}`);
+      el.innerHTML = `<span class="pic">${media(w, true)}${w.loop ? `<video src="${w.loop}" muted loop playsinline preload="none" disablepictureinpicture aria-hidden="true"></video>` : ""}</span>`
+        + `<span class="tint"></span><span class="shade"></span>`
+        + `<span class="sliver"><span class="n">${w.num}</span><span>${w.title}</span></span>`
+        + `<span class="cap"><span><span class="t">${w.title}</span><span class="r caps">${w.line}</span></span><span class="p"></span></span>`;
+      stage.appendChild(el);
+      const video = el.querySelector("video"), mark = el.querySelector(".soonmark, .slate .big");
+      if(mark) mark.classList.add("acc-mark");
+      if(video) video.addEventListener("playing", ()=>video.classList.add("live"), {once:true});
+      el.addEventListener("click", ()=>{
+        if(Math.abs(progress() - i) < .5) openViewer(w);
+        else scrollTo({top: origin + i * STEP, behavior: reduce ? "auto" : "smooth"});
+      });
+      return {i, el, video, parts: {
+        pic: el.querySelector(".pic"), tint: el.querySelector(".tint"), shade: el.querySelector(".shade"), cap: el.querySelector(".cap"),
+        sliver: el.querySelector(".sliver"), mark}};
     });
-    const marks = items.map(()=>{ const m = document.createElement("span"); m.className = "acc-snap"; wrap.appendChild(m); return m; });
-    let H = 400, OPEN = 300, STEP = 300, TOP = 64, origin = 0, last = -1, ticking = false;
-    function on(){ return phone.matches && docEl.classList.contains("stack-view"); }
+    const marks = items.map(()=>wrap.appendChild(Object.assign(document.createElement("span"), {className: "acc-snap"})));
+    let H = 0, OPEN = 0, STEP = 1, origin = 0, ready = false, ticking = false, size = "";
+
+    const on = () => phone.matches && !docEl.classList.contains("grid-view");
+    const progress = () => Math.min(N - 1, Math.max(0, (scrollY - origin) / STEP));
+    /* everything about film i at scroll progress p */
+    function look(i, p){
+      const k = Math.max(0, 1 - Math.abs(p - i)), h = SLICE + (OPEN - SLICE) * k, fade = Math.max(0, k * 1.6 - .6);
+      return {
+        el: `height:${h.toFixed(1)}px`,
+        pic: `transform:translate3d(0,${((h - OPEN) / 2).toFixed(1)}px,0)`,
+        tint: `opacity:${(1 - k).toFixed(3)}`,
+        shade: `opacity:${fade.toFixed(3)}`, cap: `opacity:${fade.toFixed(3)}`, mark: `opacity:${fade.toFixed(3)}`,
+        sliver: `opacity:${Math.max(0, 1 - k * 2.5).toFixed(3)}`
+      };
+    }
     function layout(){
-      if(!on()) return;
-      TOP = bar.offsetHeight + 8;
-      H = Math.round(innerHeight - TOP - 18);
-      STEP = Math.round(innerHeight * .55);
+      if(!on()){ sheet.textContent = ""; return; }
+      const TOP = bar.offsetHeight + 8, svh = probe.offsetHeight;
+      H = Math.round(svh - TOP - 18);
+      OPEN = H - (N - 1) * (SLICE + GAP);
+      STEP = Math.round(svh * .55);
       docEl.style.setProperty("--acc-top", `${TOP}px`);
       docEl.style.setProperty("--acc-h", `${H}px`);
-      docEl.style.scrollPaddingTop = `${TOP}px`;
-      wrap.style.height = `${H + (items.length - 1) * STEP}px`;
-      marks.forEach((m,i)=>m.style.top = `${i * STEP}px`);
-      OPEN = H - items.length * SL - (items.length - 1) * GAP + SL;     /* height of a fully open panel */
       docEl.style.setProperty("--acc-open", `${OPEN}px`);
-      origin = wrap.getBoundingClientRect().top + scrollY - TOP;
-      last = -1; update();
+      docEl.style.scrollPaddingTop = `${TOP}px`;
+      wrap.style.height = `${H + (N - 1) * STEP}px`;
+      marks.forEach((m,i)=>m.style.top = `${i * STEP}px`);
+      origin = Math.round(wrap.getBoundingClientRect().top + scrollY - TOP);
+      ready = true;
+      if(native){
+        /* keyframes at every point where a value changes direction, so the browser's straight lines between them are exact */
+        const end = origin + (N - 1) * STEP, range = `animation-timeline:scroll(root block);animation-range:${origin}px ${end}px`;
+        let css = "";
+        items.forEach(it=>{
+          const pts = [...new Set([0, N - 1, ...[-1, -.625, -.6, 0, .6, .625, 1].map(d=>it.i + d)]
+            .filter(p=>p >= 0 && p <= N - 1).map(p=>+p.toFixed(4)))].sort((a,b)=>a - b);
+          const frames = pts.map(p=>[p / (N - 1) * 100, look(it.i, p)]);
+          Object.keys(frames[0][1]).forEach(part=>{
+            if(part !== "el" && !it.parts[part]) return;
+            const name = `acc${it.i}${part}`, sel = `.acc-item[data-i="${it.i}"]` + (part === "el" ? "" : ` .${part === "mark" ? "acc-mark" : part}`);
+            css += `@keyframes ${name}{${frames.map(([o,v])=>`${o.toFixed(3)}%{${v[part]}}`).join("")}}${sel}{animation:${name} linear both;${range}}`;
+          });
+        });
+        sheet.textContent = css;
+      }
+      update(true);
     }
-    function update(){
+    /* per frame: the script fallback sizes, plus which film's preview plays (cheap, reads only) */
+    function update(force){
       ticking = false;
-      if(!on()) return;
-      const p = Math.min(items.length - 1, Math.max(0, (scrollY - origin) / STEP));
-      if(p === last) return; last = p;
-      const open = H - items.length * SL - (items.length - 1) * GAP;      /* the height shared out by the open panel */
+      if(!on() || !ready) return;
+      const p = progress();
+      if(!native) items.forEach(it=>{
+        const v = look(it.i, p);
+        it.el.style.cssText = v.el;
+        Object.entries(it.parts).forEach(([part,node])=>{ if(node) node.style.cssText = v[part]; });
+      });
       items.forEach(it=>{
-        const k = Math.max(0, 1 - Math.abs(p - it.idx));                 /* 1 = fully open, 0 = a slice */
-        const h = SL + open * k;
-        it.el.style.height = `${h.toFixed(1)}px`;
-        it.pic.style.transform = `translate3d(0,${((h - OPEN) / 2).toFixed(1)}px,0)`;   /* keep the picture centred in its window */
-        it.tint.style.opacity = (1 - k).toFixed(3);
-        if(it.mark) it.mark.style.opacity = Math.max(0, k * 1.6 - .6).toFixed(3);
-        it.cap.style.opacity = it.shade.style.opacity = Math.max(0, k * 1.6 - .6).toFixed(3);
-        it.sliver.style.opacity = Math.max(0, 1 - k * 2.5).toFixed(3);
-        it.el.toggleAttribute("data-open", k > .5);
-        if(it.video){
-          if(k > .6 && !reduce){ it.video.preload = "auto"; it.video.play().catch(()=>{}); }
-          else if(!it.video.paused) it.video.pause();
-        }
+        if(!it.video) return;
+        const open = Math.abs(p - it.i) < .4 && !reduce;
+        if(open && it.video.paused){ it.video.preload = "auto"; it.video.play().catch(()=>{}); }
+        else if(!open && !it.video.paused) it.video.pause();
       });
     }
-    items.forEach(it=>it.el.addEventListener("click", ()=>{
-      if(it.el.hasAttribute("data-open")) openViewer(it.w);
-      else scrollTo({top: origin + it.idx * STEP, behavior: reduce ? "auto" : "smooth"});
-    }));
-    addEventListener("scroll", ()=>{ if(!ticking && on()){ ticking = true; requestAnimationFrame(update); } }, {passive:true});
-    addEventListener("resize", ()=>requestAnimationFrame(layout));
+    addEventListener("scroll", ()=>{ if(!ticking && on()){ ticking = true; requestAnimationFrame(()=>update()); } }, {passive:true});
+    /* re-measure only when the layout really changes, not when a phone's toolbar slides in and out */
+    addEventListener("resize", ()=>{ const k = `${innerWidth}x${probe.offsetHeight}`; if(k !== size){ size = k; requestAnimationFrame(layout); } });
     (document.fonts ? document.fonts.ready : Promise.resolve()).then(()=>requestAnimationFrame(layout));
     return {layout};
   })();
 
-  /* list, stack or grid */
-  const views = $("#views"), root = document.documentElement;
+  /* accordion or grid */
+  const views = $("#views");
   function setView(v, animate){
     const apply = ()=>{
-      root.classList.toggle("grid-view", v === "grid");
-      root.classList.toggle("stack-view", v === "stack");
-      if(v !== "stack") root.style.scrollPaddingTop = "";
+      docEl.classList.toggle("grid-view", v === "grid");
+      if(v === "grid") docEl.style.scrollPaddingTop = "";
       views.querySelectorAll(".vbtn").forEach(b=>b.setAttribute("aria-pressed", String(b.dataset.view === v)));
       fitAll(); measure(); acc.layout();
       const y = views.getBoundingClientRect().top + scrollY - bar.offsetHeight - 6;
       if(scrollY > y) scrollTo(0, y);
     };
-    if(animate && !reduce && document.startViewTransition){
-      const lis = [...list.querySelectorAll("li")];
-      lis.forEach((li,i)=>li.style.viewTransitionName = `work-${i}`);
-      document.startViewTransition(apply).finished.finally(()=>lis.forEach(li=>li.style.viewTransitionName = ""));
-    } else apply();
+    if(animate && !reduce && document.startViewTransition) document.startViewTransition(apply); else apply();
     try{ localStorage.setItem("pscj-view", v); }catch(e){}
   }
   views.addEventListener("click", e=>{ const b = e.target.closest(".vbtn"); if(b && b.getAttribute("aria-pressed") !== "true") setView(b.dataset.view, true); });
   let saved = null; try{ saved = localStorage.getItem("pscj-view"); }catch(e){}
-  if(saved === "grid" || saved === "stack") setView(saved, false);
-
-  const centre = new IntersectionObserver(entries=>entries.forEach(e=>e.target.classList.toggle("is-center", e.isIntersecting)),
-    {rootMargin:"-45% 0px -45% 0px"});
-  list.querySelectorAll("li").forEach(li=>centre.observe(li));
+  if(saved === "grid") setView("grid", false);
 })();
 </script>
 </body>
