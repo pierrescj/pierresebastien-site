@@ -31,10 +31,12 @@ belong in this repo: GitHub refuses files over 100 MB, and every visitor's downl
     node checks/serve.js . 8787 &      # mimics Vercel: clean URLs + headers from vercel.json
     node checks/check.js http://localhost:8787
 
-It loads the site at desktop and phone sizes, opens every panel, scrolls the name animation, checks the accordion and grid,
+It loads the site at desktop (wide and tall windows) and phone sizes, opens every panel, scrolls the name animation, checks the accordion and grid,
 checks every asset and the privacy page, and lists any problems. Screenshots land in /tmp (or $OUT).
 
 ## Link preview image
 
 `og-share.jpg` is what iMessage, WhatsApp and LinkedIn show when the link is shared. When the work changes,
 update the covers in `checks/og.html` and run `node checks/og.js`.
+Run it three ways before shipping animation changes: as is, with `FALLBACK=1` (no scroll-linked animations, as on older Safari),
+and with `REDUCED=1` (reduce motion turned on).

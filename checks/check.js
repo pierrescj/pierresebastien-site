@@ -1,14 +1,20 @@
-// Full regression: desktop + phone, CSP errors, fonts, name morph, rule, panels, swipe, grid, privacy page
+// Full regression: desktop (wide and tall windows) + phone, CSP errors, fonts, name morph, rule, panels, swipe,
+// accordion, grid, privacy page.  Env: FALLBACK=1 hides scroll-linked animation support (as on older Safari),
+// REDUCED=1 turns on "reduce motion".
 const { chromium } = require('playwright');
 const BASE = process.argv[2] || 'http://localhost:8787';
 const OUT = process.env.OUT || '/tmp';
 (async () => {
   const b = await chromium.launch(); const problems = []; const log = m => console.log(m);
+  const ctx = await b.newContext({reducedMotion: process.env.REDUCED ? 'reduce' : 'no-preference'});
+  if (process.env.FALLBACK) await ctx.addInitScript(()=>{ const o=CSS.supports.bind(CSS); CSS.supports=(a,v)=>/animation-timeline|animation-range/.test(String(a)) ? false : o(a,v); });
+  const page = opts => ctx.browser().newPage({...opts, reducedMotion: process.env.REDUCED ? 'reduce' : 'no-preference'}).then(async pg=>{ if (process.env.FALLBACK) await pg.addInitScript(()=>{ const o=CSS.supports.bind(CSS); CSS.supports=(a,v)=>/animation-timeline|animation-range/.test(String(a)) ? false : o(a,v); }); return pg; });
+  log(`mode: ${process.env.FALLBACK ? 'script fallback (older Safari)' : 'native scroll-linked'}${process.env.REDUCED ? ', reduced motion' : ''}`);
   const watch = (p, tag) => { p.on('pageerror', e => problems.push(`${tag} JS error: ${e.message}`));
     p.on('console', m => { if (m.type()==='error') problems.push(`${tag} console: ${m.text()}`); });
     p.on('requestfailed', r => { if (!/youtube|ytimg|google|gstatic|doubleclick/.test(r.url())) problems.push(`${tag} failed request: ${r.url()}`); }); };
   // desktop
-  const d = await b.newPage({viewport:{width:1440,height:900}}); watch(d,'desktop');
+  const d = await page({viewport:{width:1440,height:900}}); watch(d,'desktop');
   const t0 = Date.now(); await d.goto(BASE + '/', {waitUntil:'load'}); log(`desktop load ${Date.now()-t0}ms`);
   await d.waitForTimeout(500);
   log('font loaded: ' + await d.evaluate(()=>document.fonts.check('700 20px "Space Mono"')));
@@ -23,8 +29,23 @@ const OUT = process.env.OUT || '/tmp';
   await d.click('#viewer .x'); await d.waitForTimeout(400); log('viewer closed: ' + !(await d.$eval('#viewer', e=>e.open)));
   await d.screenshot({path:OUT + '/chk-desk.png'});
   const ov = await d.evaluate(()=>document.documentElement.scrollWidth > innerWidth); if (ov) problems.push('desktop horizontal overflow');
+  // tall and squarish windows: list becomes a sideways strip under the preview
+  for (const [w,h] of [[1100,1000],[1000,1150],[820,1180]]) {
+    const t = await page({viewport:{width:w,height:h}}); watch(t,`tall ${w}x${h}`);
+    await t.goto(BASE + '/'); await t.waitForTimeout(600);
+    const g = await t.evaluate(()=>{ const st=document.querySelector('.stage').getBoundingClientRect(), lis=[...document.querySelectorAll('#list li')].map(l=>l.getBoundingClientRect());
+      return {stageW: st.width, stageBottom: st.bottom, listTop: lis[0].top, sameRow: lis.every(r=>Math.abs(r.top-lis[0].top)<2), overX: document.documentElement.scrollWidth>innerWidth, overY: document.documentElement.scrollHeight>innerHeight+2}; });
+    if (!g.sameRow || g.listTop < g.stageBottom || g.overX || g.overY || g.stageW < 300) problems.push(`tall ${w}x${h} layout: ${JSON.stringify(g)}`);
+    await t.hover('.row[data-id="birthday"]').catch(()=>{}); await t.waitForTimeout(300);
+    const active = await t.$eval('.layer.on', e=>e.dataset.id); if (active !== 'birthday') problems.push(`tall ${w}x${h}: hover did not preview`);
+    await t.mouse.move(w/2, h-80); await t.mouse.wheel(0, 400); await t.waitForTimeout(300);
+    const sl = await t.$eval('#list', e=>e.scrollLeft);
+    log(`tall ${w}x${h}: strip under preview ${g.sameRow && g.listTop >= g.stageBottom}, wheel moves strip ${sl > 0}`);
+    if (w===1000) await t.screenshot({path:OUT + '/chk-tall.png'});
+    await t.close();
+  }
   // phone
-  const p = await b.newPage({viewport:{width:390,height:844}, deviceScaleFactor:2, isMobile:true, hasTouch:true}); watch(p,'phone');
+  const p = await page({viewport:{width:390,height:844}, deviceScaleFactor:2, isMobile:true, hasTouch:true}); watch(p,'phone');
   await p.goto(BASE + '/'); await p.waitForTimeout(700);
   for (const y of [0,60,120,200]) { await p.evaluate(y=>{document.documentElement.style.scrollSnapType='none';scrollTo(0,y)},y); await p.waitForTimeout(80);
     const r = await p.evaluate(()=>{ const w=[...document.querySelectorAll('#nbName .nw')].map(x=>x.getBoundingClientRect());
@@ -43,7 +64,7 @@ const OUT = process.env.OUT || '/tmp';
   await p.evaluate(()=>scrollTo(0, document.body.scrollHeight)); await p.waitForTimeout(400);
   log('footer visible at end: ' + await p.evaluate(()=>{const r=document.querySelector('.foot').getBoundingClientRect(); return r.top < innerHeight && r.bottom > 0;}));
   // privacy
-  const q = await b.newPage({viewport:{width:390,height:844}, isMobile:true}); watch(q,'privacy');
+  const q = await page({viewport:{width:390,height:844}, isMobile:true}); watch(q,'privacy');
   const res = await q.goto(BASE + '/privacy'); log('privacy status ' + res.status());
   await q.screenshot({path:OUT + '/chk-privacy.png', fullPage:true});
   // every image the site references (posters, phone covers, headshot) plus the fixed files
