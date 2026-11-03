@@ -45,7 +45,7 @@ const OUT = process.env.OUT || '/tmp';
   await q.screenshot({path:OUT + '/chk-privacy.png', fullPage:true});
   // every image the site references (posters, phone covers, headshot) plus the fixed files
   const refs = await d.evaluate(()=>[...new Set([...document.querySelectorAll('img[src],source[srcset]')].map(e=>new URL(e.getAttribute('src')||e.getAttribute('srcset'), location.href).pathname))]);
-  for (const f of ['/robots.txt','/sitemap.xml','/og.png','/favicon.svg','/apple-touch-icon.png', ...refs]) {
+  for (const f of ['/robots.txt','/sitemap.xml','/og.png','/og-share.jpg','/favicon.svg','/apple-touch-icon.png', ...refs]) {
     const r = await q.request.get(BASE + f); if (r.status() !== 200) problems.push(`${f} -> ${r.status()}`); }
   log(`checked ${refs.length} images`);
   log('PROBLEMS: ' + (problems.length ? '\n - ' + problems.join('\n - ') : 'none'));

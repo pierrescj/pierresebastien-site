@@ -33,3 +33,8 @@ belong in this repo: GitHub refuses files over 100 MB, and every visitor's downl
 
 It loads the site at desktop and phone sizes, opens every panel, scrolls the name animation, switches views,
 checks every asset and the privacy page, and lists any problems. Screenshots land in /tmp (or $OUT).
+
+## Link preview image
+
+`og-share.jpg` is what iMessage, WhatsApp and LinkedIn show when the link is shared. When the work changes,
+update the covers in `checks/og.html` and run `node checks/og.js`.
