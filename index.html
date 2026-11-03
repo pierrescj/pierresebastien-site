@@ -846,10 +846,13 @@ document.querySelectorAll("dialog").forEach(d=>panelWatch.observe(d, {attributes
         if(Math.abs(progress() - it.i) >= .4) return;
         try{ v.currentTime = 0; }catch(e){}
         v.play().then(()=>{
-          /* reveal only once a few frames have actually been shown: a phone's decoder can stutter on the very first ones */
-          let n = 0;
-          const show = ()=>{ if(v.paused) return; if(++n < 4 && v.requestVideoFrameCallback) return v.requestVideoFrameCallback(show); v.classList.add("live"); };
-          if(v.requestVideoFrameCallback) v.requestVideoFrameCallback(show); else setTimeout(show, 160);
+          /* reveal once the first real frame is in, plus a short beat for the decoder to find its rhythm.
+             (Safari stops reporting frames of a video it isn't showing, so this never waits on more than one,
+             and a safety timer makes sure the loop always appears.) */
+          let done = false;
+          const show = ()=>{ if(done || v.paused) return; done = true; v.classList.add("live"); };
+          if(v.requestVideoFrameCallback) v.requestVideoFrameCallback(()=>setTimeout(show, 140));
+          setTimeout(show, 450);
         }).catch(()=>{});
       }, 120);
     }
