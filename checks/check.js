@@ -12,7 +12,11 @@ const OUT = process.env.OUT || '/tmp';
   log(`mode: ${process.env.FALLBACK ? 'script fallback (older Safari)' : 'native scroll-linked'}${process.env.REDUCED ? ', reduced motion' : ''}`);
   const watch = (p, tag) => { p.on('pageerror', e => problems.push(`${tag} JS error: ${e.message}`));
     p.on('console', m => { if (m.type()==='error') problems.push(`${tag} console: ${m.text()}`); });
-    p.on('requestfailed', r => { if (!/youtube|ytimg|google|gstatic|doubleclick/.test(r.url())) problems.push(`${tag} failed request: ${r.url()}`); }); };
+    p.on('requestfailed', r => {
+      const why = (r.failure() || {}).errorText || '';
+      if (/youtube|ytimg|google|gstatic|doubleclick/.test(r.url())) return;            // the sandbox can't reach YouTube
+      if (/\.mp4/.test(r.url()) && /ABORTED/.test(why)) return;                        // browsers routinely cancel video range requests
+      problems.push(`${tag} failed request: ${r.url()} ${why}`); }); };
   // desktop
   const d = await page({viewport:{width:1440,height:900}}); watch(d,'desktop');
   const t0 = Date.now(); await d.goto(BASE + '/', {waitUntil:'load'}); log(`desktop load ${Date.now()-t0}ms`);
